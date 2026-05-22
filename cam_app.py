@@ -51,37 +51,212 @@ def _is_public_path(path: str) -> bool:
 
 
 def _login_html(error: str | None = None, status_code: int = 200) -> HTMLResponse:
-    error_html = f'<p class="error">{error}</p>' if error else ""
+    error_block = (
+        f'<div class="error-bar" role="alert">'
+        f'<span class="material-icons-round" aria-hidden="true">error_outline</span>'
+        f'{error}'
+        f'</div>'
+    ) if error else ""
     return HTMLResponse(
         f"""<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>CAM Login</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Sign in — CAM</title>
+  <link rel="stylesheet" href="/static/colors_and_type.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" />
   <style>
-    :root {{ color-scheme: light; font-family: Inter, system-ui, -apple-system, sans-serif; }}
-    body {{ margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f6f4ef; color: #17201a; }}
-    main {{ width: min(100% - 32px, 380px); padding: 32px; border: 1px solid #d8d2c5; border-radius: 8px; background: #fff; }}
-    h1 {{ margin: 0 0 8px; font-size: 28px; letter-spacing: 0; }}
-    p {{ margin: 0 0 24px; color: #4e5b52; }}
-    label {{ display: block; margin-bottom: 8px; font-weight: 700; }}
-    input {{ box-sizing: border-box; width: 100%; height: 44px; border: 1px solid #b9b2a6; border-radius: 6px; padding: 0 12px; font: inherit; }}
-    button {{ width: 100%; height: 44px; margin-top: 16px; border: 0; border-radius: 6px; background: #17201a; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }}
-    .error {{ margin: 0 0 16px; color: #a1261f; font-weight: 700; }}
+    *, *::before, *::after {{ box-sizing: border-box; margin: 0; padding: 0; }}
+
+    body {{
+      font-family: var(--font-sans);
+      background: var(--fp-secondary-bg);
+      color: var(--fp-darkgrey);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }}
+
+    /* ── Header ── */
+    header {{
+      background: var(--fp-white);
+      border-bottom: 1px solid var(--fp-primary);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      flex-shrink: 0;
+    }}
+    .logo {{
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }}
+    .logo img {{ height: 20px; display: block; }}
+    .logo-divider {{
+      width: 1px;
+      height: 18px;
+      background: var(--fp-secondary-25);
+    }}
+    .logo-product {{
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      color: var(--fp-darkgrey);
+    }}
+    .logo-product span {{ color: var(--fp-primary); }}
+
+    /* ── Centre stage ── */
+    .stage {{
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 24px;
+    }}
+
+    /* ── Card ── */
+    .card {{
+      background: var(--fp-white);
+      border: 1px solid var(--fp-secondary-25);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-pop);
+      width: min(100%, 400px);
+      overflow: hidden;
+    }}
+    .card-header {{
+      padding: 28px 32px 24px;
+      border-bottom: 1px solid var(--fp-primary);
+    }}
+    .card-title {{
+      font-size: var(--fs-xl);
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--fp-darkgrey);
+    }}
+    .card-sub {{
+      font-size: var(--fs-sm);
+      color: var(--fp-secondary-75);
+      margin-top: 4px;
+    }}
+    .card-body {{
+      padding: 28px 32px 32px;
+    }}
+
+    /* ── Error bar ── */
+    .error-bar {{
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--fp-light-primary);
+      border: 1px solid var(--fp-primary);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      color: var(--fp-primary);
+      margin-bottom: 20px;
+    }}
+    .error-bar .material-icons-round {{ font-size: 16px; flex-shrink: 0; }}
+
+    /* ── Form ── */
+    .field {{ margin-bottom: 20px; }}
+    .field:last-of-type {{ margin-bottom: 0; }}
+
+    label {{
+      display: block;
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      color: var(--fp-secondary-100);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 6px;
+    }}
+    input[type="password"] {{
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      width: 100%;
+      height: 40px;
+      border: 1px solid var(--fp-secondary-100);
+      border-radius: var(--radius-sm);
+      padding: 0 12px;
+      background: var(--fp-white);
+      color: var(--fp-darkgrey);
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }}
+    input[type="password"]:focus {{
+      border-color: var(--fp-primary);
+      box-shadow: var(--shadow-input);
+    }}
+
+    .btn-submit {{
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      width: 100%;
+      height: 40px;
+      margin-top: 24px;
+      border: 1px solid var(--fp-primary);
+      border-radius: var(--radius-sm);
+      background: var(--fp-primary);
+      color: var(--fp-white);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background .15s, border-color .15s;
+    }}
+    .btn-submit:hover {{ background: var(--fp-primary-hover); border-color: var(--fp-primary-hover); }}
+    .btn-submit .material-icons-round {{ font-size: 16px; }}
+
+    /* ── Footer ── */
+    footer {{
+      text-align: center;
+      padding: 20px;
+      font-size: var(--fs-xs);
+      color: var(--fp-secondary-50);
+      flex-shrink: 0;
+    }}
   </style>
 </head>
 <body>
-  <main>
-    <h1>CAM</h1>
-    <p>Consent Asset Matcher</p>
-    {error_html}
-    <form method="post" action="/login">
-      <label for="password">Password</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
-      <button type="submit">Sign in</button>
-    </form>
-  </main>
+
+<header>
+  <div class="logo">
+    <img src="/static/fairpicture.svg" alt="Fairpicture" />
+    <div class="logo-divider"></div>
+    <span class="logo-product">CAM — <span>Consent</span> Asset Matcher</span>
+  </div>
+</header>
+
+<div class="stage">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">Sign in</div>
+      <div class="card-sub">Internal tool · restricted access</div>
+    </div>
+    <div class="card-body">
+      {error_block}
+      <form method="post" action="/login">
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password"
+                 autocomplete="current-password" required autofocus
+                 placeholder="Enter your password" />
+        </div>
+        <button class="btn-submit" type="submit">
+          <span class="material-icons-round">lock_open</span>
+          Sign in
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<footer>Fairpicture · internal use only</footer>
+
 </body>
 </html>""",
         status_code=status_code,
