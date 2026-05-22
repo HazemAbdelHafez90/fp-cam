@@ -1,16 +1,24 @@
 """CAM — Consent Asset Matcher API"""
 
-import os
 import re
 from pathlib import Path
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
+from starlette.middleware.base import BaseHTTPMiddleware
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent
 
+from auth import (
+    AUTH_COOKIE_NAME,
+    create_session_token,
+    is_configured,
+    is_password_valid,
+    load_auth_config,
+    verify_session_token,
+)
 import canto_client as canto
 from pdf_parser import parse_consent_pdf
 from matcher import score_match
@@ -18,6 +26,85 @@ from matcher import score_match
 load_dotenv()
 
 app = FastAPI(title="CAM — Consent Asset Matcher")
+
+PUBLIC_PATHS = {
+    "/login",
+    "/logout",
+    "/static/colors_and_type.css",
+    "/static/fairpicture.svg",
+    "/static/fonts/GT-Cinetype-Bold.woff",
+    "/static/fonts/GT-Cinetype-Bold.woff2",
+    "/static/fonts/GT-Cinetype-Mono.woff",
+    "/static/fonts/GT-Cinetype-Mono.woff2",
+    "/static/fonts/GT-Cinetype-Regular.woff",
+    "/static/fonts/GT-Cinetype-Regular.woff2",
+}
+PUBLIC_PREFIXES = ()
+
+
+def _wants_json(request: Request) -> bool:
+    return request.url.path == "/api" or request.url.path.startswith("/api/")
+
+
+def _is_public_path(path: str) -> bool:
+    return path in PUBLIC_PATHS or any(path.startswith(prefix) for prefix in PUBLIC_PREFIXES)
+
+
+def _login_html(error: str | None = None, status_code: int = 200) -> HTMLResponse:
+    error_html = f'<p class="error">{error}</p>' if error else ""
+    return HTMLResponse(
+        f"""<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CAM Login</title>
+  <style>
+    :root {{ color-scheme: light; font-family: Inter, system-ui, -apple-system, sans-serif; }}
+    body {{ margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f6f4ef; color: #17201a; }}
+    main {{ width: min(100% - 32px, 380px); padding: 32px; border: 1px solid #d8d2c5; border-radius: 8px; background: #fff; }}
+    h1 {{ margin: 0 0 8px; font-size: 28px; letter-spacing: 0; }}
+    p {{ margin: 0 0 24px; color: #4e5b52; }}
+    label {{ display: block; margin-bottom: 8px; font-weight: 700; }}
+    input {{ box-sizing: border-box; width: 100%; height: 44px; border: 1px solid #b9b2a6; border-radius: 6px; padding: 0 12px; font: inherit; }}
+    button {{ width: 100%; height: 44px; margin-top: 16px; border: 0; border-radius: 6px; background: #17201a; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }}
+    .error {{ margin: 0 0 16px; color: #a1261f; font-weight: 700; }}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>CAM</h1>
+    <p>Consent Asset Matcher</p>
+    {error_html}
+    <form method="post" action="/login">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+      <button type="submit">Sign in</button>
+    </form>
+  </main>
+</body>
+</html>""",
+        status_code=status_code,
+    )
+
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        if _is_public_path(request.url.path):
+            return await call_next(request)
+
+        config = load_auth_config()
+        token = request.cookies.get(AUTH_COOKIE_NAME)
+        if verify_session_token(token, config):
+            return await call_next(request)
+
+        if _wants_json(request):
+            return JSONResponse({"detail": "Authentication required"}, status_code=401)
+
+        return RedirectResponse("/login", status_code=303)
+
+
+app.add_middleware(AuthMiddleware)
 
 # In-memory decisions store: {image_id: "confirmed" | "rejected"}
 decisions: dict[str, dict] = {}
@@ -49,6 +136,40 @@ def _project_id_from_albums(asset: dict) -> str | None:
 
 
 # ── routes ────────────────────────────────────────────────────────────────────
+
+@app.get("/login", response_class=HTMLResponse)
+def login_page():
+    return _login_html()
+
+
+@app.post("/login", response_class=HTMLResponse)
+def login(password: str = Form(...)):
+    config = load_auth_config()
+    if not is_configured(config):
+        return _login_html("Authentication is not configured.", status_code=500)
+
+    if not is_password_valid(password, config):
+        return _login_html("Invalid password.", status_code=401)
+
+    response = RedirectResponse("/", status_code=303)
+    response.set_cookie(
+        AUTH_COOKIE_NAME,
+        create_session_token(config),
+        max_age=config.max_age_seconds,
+        httponly=True,
+        secure=config.cookie_secure,
+        samesite="lax",
+        path="/",
+    )
+    return response
+
+
+@app.get("/logout")
+def logout():
+    response = RedirectResponse("/login", status_code=303)
+    response.delete_cookie(AUTH_COOKIE_NAME, path="/")
+    return response
+
 
 @app.get("/api/projects")
 def list_projects():
