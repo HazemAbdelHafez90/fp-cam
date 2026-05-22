@@ -379,9 +379,13 @@ def debug_project(project_id: str):
 
 
 @app.get("/api/matches/{project_id}")
-def get_matches(project_id: str):
+def get_matches(project_id: str, album_id: str | None = None):
     """Run matching for a project and return scored pairs."""
-    images = canto.get_project_images(project_id)
+    # Prefer direct album fetch (accurate) over keyword search (unreliable)
+    if album_id:
+        images = canto.get_album_images(album_id)
+    else:
+        images = canto.get_project_images(project_id)
     docs   = canto.get_project_documents(project_id)
 
     if not images:

@@ -745,6 +745,7 @@
   // ── Combobox ──────────────────────────────────────────────────────────────
   let _allProjects = [];
   let _selectedProjectId = '';
+  let _selectedAlbumId   = '';   // ID of the Photos sub-album for direct fetch
   let _highlightIndex = -1;
 
   const trigger  = document.getElementById('comboTrigger');
@@ -805,6 +806,11 @@
     _selectedProjectId = pid;
     const p = _allProjects.find(p => p.project_id === pid);
     search.value = p ? p.name.replace(/\+/g, ' ') : pid;
+    // Pick the Photos sub-album for direct image fetch (most reliable)
+    const photosAlbum = p && p.albums
+      ? p.albums.find(a => /photo/i.test(a.name))
+      : null;
+    _selectedAlbumId = photosAlbum ? photosAlbum.id : (p ? p.id : '');
     comboClose();
     loadMatches();
   }
@@ -912,7 +918,8 @@
     document.getElementById('noConsentNotice').style.display = 'none';
 
     try {
-      const res = await fetch(`/api/matches/${pid}`);
+      const albumParam = _selectedAlbumId ? `?album_id=${encodeURIComponent(_selectedAlbumId)}` : '';
+      const res = await fetch(`/api/matches/${pid}${albumParam}`);
       if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Error'); }
       const data = await res.json();
       completeProgress(() => {

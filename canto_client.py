@@ -97,7 +97,24 @@ def get_project_documents(project_id: str) -> list[dict]:
                 for a in r.get("relatedAlbums", []))]
 
 
+def get_album_images(album_id: str) -> list[dict]:
+    """Fetch all images directly from a Canto album by its ID."""
+    params = {"sortBy": "time", "sortDirection": "descending", "limit": 100, "start": 0}
+    results = []
+    while True:
+        resp = _request("GET", f"{BASE_URL}/api/v1/album/{album_id}/image", params=params)
+        resp.raise_for_status()
+        data = resp.json()
+        found = data.get("results", [])
+        results.extend(found)
+        if len(results) >= (data.get("found") or 0) or not found:
+            break
+        params["start"] += len(found)
+    return results
+
+
 def get_project_images(project_id: str) -> list[dict]:
+    """Fallback: keyword search for images (less reliable than get_album_images)."""
     results = search_assets(keyword=project_id, scheme="image", limit=100)
     return [r for r in results if
             any(f"_{project_id}_" in a.get("namePath", "") or
