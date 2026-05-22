@@ -91,9 +91,9 @@ def search_assets(keyword: str, scheme: str = "", limit: int = 100) -> list[dict
 def get_project_documents(project_id: str) -> list[dict]:
     results = search_assets(keyword=project_id, scheme="document", limit=100)
     return [r for r in results if
+            f"({project_id})" in r.get("name", "") or
             any(f"_{project_id}_" in a.get("namePath", "") or
-                f"/{project_id}_" in a.get("namePath", "") or
-                f"({project_id})" in r.get("name", "")
+                f"/{project_id}_" in a.get("namePath", "")
                 for a in r.get("relatedAlbums", []))]
 
 
