@@ -3,6 +3,8 @@
 import re
 from pathlib import Path
 from fastapi import FastAPI, Form, HTTPException, Request
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
@@ -26,6 +28,16 @@ from matcher import score_match
 load_dotenv()
 
 app = FastAPI(title="CAM — Consent Asset Matcher")
+
+
+@app.exception_handler(Exception)
+async def _all_exceptions(request: Request, exc: Exception):
+    """Always return JSON for /api/* errors so the frontend can parse them."""
+    if request.url.path.startswith("/api/"):
+        status = getattr(exc, "status_code", 500)
+        detail = getattr(exc, "detail", None) or str(exc)
+        return JSONResponse({"detail": detail}, status_code=status)
+    raise exc
 
 PUBLIC_PATHS = {
     "/login",

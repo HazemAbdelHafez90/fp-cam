@@ -98,11 +98,34 @@ def get_project_documents(project_id: str) -> list[dict]:
 
 
 def get_album_images(album_id: str) -> list[dict]:
-    """Fetch all images directly from a Canto album by its ID."""
-    params = {"sortBy": "time", "sortDirection": "descending", "limit": 100, "start": 0}
+    """Fetch all images from a Canto album using the album content endpoint."""
+    params = {"sortBy": "time", "sortDirection": "descending", "limit": 100, "start": 0,
+              "scheme": "image"}
     results = []
     while True:
-        resp = _request("GET", f"{BASE_URL}/api/v1/album/{album_id}/image", params=params)
+        resp = _request("GET", f"{BASE_URL}/api/v1/album/{album_id}", params=params)
+        if not resp.ok:
+            # Fall back: search scoped to this album via the search API
+            return _search_album_images(album_id)
+        data = resp.json()
+        found = data.get("results", [])
+        results.extend(found)
+        if len(results) >= (data.get("found") or 0) or not found:
+            break
+        params["start"] += len(found)
+    # If the album endpoint returned metadata rather than images, fall back
+    if results and "name" in results[0] and "scheme" not in results[0]:
+        return _search_album_images(album_id)
+    return results
+
+
+def _search_album_images(album_id: str) -> list[dict]:
+    """Search images scoped to a specific album ID."""
+    params = {"scheme": "image", "limit": 100, "start": 0,
+              "albums": album_id}
+    results = []
+    while True:
+        resp = _request("GET", f"{BASE_URL}/api/v1/search", params=params)
         resp.raise_for_status()
         data = resp.json()
         found = data.get("results", [])
