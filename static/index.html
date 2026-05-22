@@ -871,19 +871,14 @@
   <button class="filter-btn" onclick="setFilter('rejected',this)">Rejected <span class="filter-count" id="fc-rejected">0</span></button>
 </div>
 
-<!-- Global compliance dashboard (shown before project selection) -->
-<div id="globalDashboard">
-  <div id="globalContent">
-    <div class="global-loading">
-      <div class="global-spinner"></div>
-      Loading compliance overview…
+<!-- Table -->
+<div class="table-section" id="projectView">
+  <div id="tableContainer">
+    <div class="state-box">
+      <div class="icon"><span class="material-icons-round" style="font-size:40px">manage_search</span></div>
+      <p>Select a project and run matching to get started.</p>
     </div>
   </div>
-</div>
-
-<!-- Table (shown after project selection) -->
-<div class="table-section" id="projectView" style="display:none">
-  <div id="tableContainer"></div>
 </div>
 
 <!-- Modal -->
@@ -1008,98 +1003,12 @@
 
   // ── Init ─────────────────────────────────────────────────────────────────
   async function init() {
-    const [projRes, _] = await Promise.all([
-      fetch('/api/projects'),
-      loadGlobalCompliance(),
-    ]);
-    const projects = await projRes.json();
+    const res = await fetch('/api/projects');
+    const projects = await res.json();
     _allProjects = projects.filter(p => p.project_id);
     search.placeholder = 'Select a project…';
     dropdown.innerHTML = '';
     document.getElementById('loadBtn').disabled = false;
-  }
-
-  async function loadGlobalCompliance() {
-    try {
-      const res = await fetch('/api/compliance');
-      if (!res.ok) throw new Error(await res.text());
-      const data = await res.json();
-      renderGlobalDashboard(data);
-    } catch (e) {
-      document.getElementById('globalContent').innerHTML =
-        `<div class="state-box"><div class="icon"><span class="material-icons-round" style="font-size:40px">error_outline</span></div>
-         <p>Could not load compliance overview: ${e.message}</p></div>`;
-    }
-  }
-
-  function renderGlobalDashboard(data) {
-    const { total, linked, pct, projects } = data;
-    const unlinked = total - linked;
-
-    document.getElementById('globalContent').innerHTML = `
-      <div class="global-hero">
-        <div class="global-score">
-          <div class="global-score-pct">${pct}%</div>
-          <div class="global-score-label">compliant</div>
-        </div>
-        <div class="global-bar-block">
-          <div class="global-bar-title">Consent coverage across all projects</div>
-          <div class="global-bar-track">
-            <div class="global-bar-fill" style="width:${pct}%"></div>
-          </div>
-          <div class="global-bar-sub">${linked} of ${total} images have a consent linked</div>
-        </div>
-        <div class="global-counts">
-          <div class="global-count-item">
-            <div class="global-count-num linked">${linked}</div>
-            <div class="global-count-label">With consent</div>
-          </div>
-          <div class="global-count-item">
-            <div class="global-count-num">${unlinked}</div>
-            <div class="global-count-label">Without consent</div>
-          </div>
-          <div class="global-count-item">
-            <div class="global-count-num">${projects.length}</div>
-            <div class="global-count-label">Projects</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="global-table-wrap">
-        <div class="global-table-head">
-          <div>Project</div>
-          <div>Images</div>
-          <div>Linked</div>
-          <div>Missing</div>
-          <div>Coverage</div>
-        </div>
-        ${projects.map(p => `
-          <div class="global-table-row" onclick="comboSelectByProjectId('${p.project_id}')">
-            <div>
-              <span class="row-project-name">${p.name.replace(/\+/g, ' ')}</span>
-              ${p.project_id ? `<span class="row-pid">${p.project_id}</span>` : ''}
-            </div>
-            <div>${p.total}</div>
-            <div>${p.linked}</div>
-            <div>${p.total - p.linked}</div>
-            <div style="display:flex;align-items:center;gap:0">
-              <div class="row-mini-bar">
-                <div class="row-mini-fill" style="width:${p.pct}%"></div>
-              </div>
-              <span class="row-pct">${p.pct}%</span>
-            </div>
-          </div>`).join('')}
-      </div>
-    `;
-  }
-
-  function comboSelectByProjectId(pid) {
-    // Select the project in the combobox and kick off matching
-    comboSelect(pid);
-    document.getElementById('globalDashboard').style.display = 'none';
-    document.getElementById('projectView').style.display = '';
-    document.getElementById('dashboard').style.display = '';
-    document.getElementById('filtersBar').style.display = '';
   }
 
   // ── Progress bar ──────────────────────────────────────────────────────────
@@ -1146,10 +1055,6 @@
     const pid = _selectedProjectId;
     if (!pid) return;
     currentProjectId = pid;
-
-    // Switch from global view to project view
-    document.getElementById('globalDashboard').style.display = 'none';
-    document.getElementById('projectView').style.display = '';
 
     document.getElementById('tableContainer').innerHTML =
       `<div class="state-box">
