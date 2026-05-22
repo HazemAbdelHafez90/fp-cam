@@ -4,3 +4,7 @@ pdfplumber
 rapidfuzz
 python-dotenv
 rich
+itsdangerous
+python-multipart
+pytest
+httpx
