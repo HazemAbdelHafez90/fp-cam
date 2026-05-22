@@ -295,24 +295,70 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(AuthMiddleware)
 
-# Decisions store — persisted to /tmp/cam-decisions.json so it survives
-# within a warm Lambda instance. Cold starts will re-read from disk.
-_DECISIONS_PATH = Path("/tmp/cam-decisions.json") if os.getenv("VERCEL") else Path(".cache/decisions.json")
-_DECISIONS_PATH.parent.mkdir(parents=True, exist_ok=True)
+# ── Supabase decisions store ──────────────────────────────────────────────────
+_SB_URL = os.getenv("SUPABASE_URL", "").rstrip("/")
+_SB_KEY = os.getenv("SUPABASE_KEY", "")
+
+
+def _sb_headers() -> dict:
+    return {
+        "apikey": _SB_KEY,
+        "Authorization": f"Bearer {_SB_KEY}",
+        "Content-Type": "application/json",
+        "Prefer": "resolution=merge-duplicates",
+    }
+
+
+def _sb_available() -> bool:
+    return bool(_SB_URL and _SB_KEY)
 
 
 def _load_decisions() -> dict:
+    """Load all decisions from Supabase into a local dict cache."""
+    if not _sb_available():
+        # fallback: local file
+        path = Path("/tmp/cam-decisions.json") if os.getenv("VERCEL") else Path(".cache/decisions.json")
+        try:
+            if path.exists():
+                return json.loads(path.read_text())
+        except Exception:
+            pass
+        return {}
     try:
-        if _DECISIONS_PATH.exists():
-            return json.loads(_DECISIONS_PATH.read_text())
+        import requests as _req
+        r = _req.get(f"{_SB_URL}/rest/v1/decisions?select=*", headers=_sb_headers(), timeout=5)
+        r.raise_for_status()
+        return {row["image_id"]: {"action": row["action"], "pdf_id": row["pdf_id"]} for row in r.json()}
     except Exception:
-        pass
-    return {}
+        return {}
 
 
-def _save_decisions(d: dict):
+def _save_decision(image_id: str, record: dict):
+    """Upsert a single decision to Supabase (and update local cache)."""
+    if not _sb_available():
+        path = Path("/tmp/cam-decisions.json") if os.getenv("VERCEL") else Path(".cache/decisions.json")
+        path.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            path.write_text(json.dumps(decisions))
+        except Exception:
+            pass
+        return
     try:
-        _DECISIONS_PATH.write_text(json.dumps(d))
+        import requests as _req
+        _req.post(
+            f"{_SB_URL}/rest/v1/decisions",
+            headers=_sb_headers(),
+            json={
+                "image_id":   image_id,
+                "pdf_id":     record.get("pdf_id", ""),
+                "pdf_name":   record.get("pdf_name", ""),
+                "image_name": record.get("image_name", ""),
+                "action":     record.get("action", ""),
+                "project_id": record.get("project_id", ""),
+                "updated_at": "now()",
+            },
+            timeout=5,
+        )
     except Exception:
         pass
 
@@ -622,8 +668,14 @@ def set_decision(req: DecisionRequest):
     if req.action not in ("confirmed", "rejected"):
         raise HTTPException(400, "action must be 'confirmed' or 'rejected'")
 
-    decisions[req.image_id] = {"action": req.action, "pdf_id": req.pdf_id}
-    _save_decisions(decisions)
+    record = {
+        "action":     req.action,
+        "pdf_id":     req.pdf_id,
+        "pdf_name":   req.pdf_name,
+        "image_name": req.image_name,
+    }
+    decisions[req.image_id] = record
+    _save_decision(req.image_id, record)
 
     if req.action == "confirmed":
         success = canto.link_related_file(
