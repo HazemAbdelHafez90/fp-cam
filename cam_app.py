@@ -333,19 +333,19 @@ def _load_decisions() -> dict:
         return {}
 
 
-def _save_decision(image_id: str, record: dict):
-    """Upsert a single decision to Supabase (and update local cache)."""
+def _save_decision(image_id: str, record: dict) -> str | None:
+    """Upsert a single decision to Supabase. Returns error string or None on success."""
     if not _sb_available():
         path = Path("/tmp/cam-decisions.json") if os.getenv("VERCEL") else Path(".cache/decisions.json")
         path.parent.mkdir(parents=True, exist_ok=True)
         try:
             path.write_text(json.dumps(decisions))
-        except Exception:
-            pass
-        return
+        except Exception as e:
+            return str(e)
+        return None
     try:
         import requests as _req
-        _req.post(
+        r = _req.post(
             f"{_SB_URL}/rest/v1/decisions",
             headers=_sb_headers(),
             json={
@@ -355,12 +355,14 @@ def _save_decision(image_id: str, record: dict):
                 "image_name": record.get("image_name", ""),
                 "action":     record.get("action", ""),
                 "project_id": record.get("project_id", ""),
-                "updated_at": "now()",
             },
             timeout=5,
         )
-    except Exception:
-        pass
+        if not r.ok:
+            return f"Supabase {r.status_code}: {r.text}"
+        return None
+    except Exception as e:
+        return str(e)
 
 
 decisions: dict[str, dict] = _load_decisions()
@@ -679,16 +681,16 @@ def set_decision(req: DecisionRequest):
         "image_name": req.image_name,
     }
     decisions[req.image_id] = record
-    _save_decision(req.image_id, record)
+    db_error = _save_decision(req.image_id, record)
 
     if req.action == "confirmed":
         success = canto.link_related_file(
             req.image_id, req.image_name,
             req.pdf_id,   req.pdf_name,
         )
-        return {"status": "ok", "linked_in_canto": success}
+        return {"status": "ok", "linked_in_canto": success, "db_error": db_error}
 
-    return {"status": "ok", "linked_in_canto": False}
+    return {"status": "ok", "linked_in_canto": False, "db_error": db_error}
 
 
 @app.post("/api/decision/bulk-confirm")
