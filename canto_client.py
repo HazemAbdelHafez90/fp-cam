@@ -140,7 +140,7 @@ def _search_album_images(album_id: str) -> list[dict]:
         total_found = data.get("found") or 0
         if not page or len(results) >= total_found:
             break
-        params["start"] += len(found)
+        params["start"] += len(page)
     return results
 
 
