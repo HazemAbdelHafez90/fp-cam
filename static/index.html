@@ -613,6 +613,161 @@
       display: flex; align-items: center; gap: 8px;
     }
     .no-consent-notice span.material-icons-round { font-size: 16px; color: var(--fp-primary); }
+
+    /* ── Global compliance dashboard ── */
+    #globalDashboard {
+      padding: 32px 32px 0;
+    }
+    .global-hero {
+      display: flex;
+      align-items: center;
+      gap: 40px;
+      background: var(--fp-white);
+      border: 1px solid var(--fp-secondary-25);
+      border-radius: var(--radius-md);
+      padding: 28px 32px;
+      margin-bottom: 24px;
+    }
+    .global-score {
+      flex-shrink: 0;
+      text-align: center;
+    }
+    .global-score-pct {
+      font-size: 56px;
+      font-weight: 700;
+      color: var(--fp-primary);
+      line-height: 1;
+    }
+    .global-score-label {
+      font-size: var(--fs-xs);
+      color: var(--fp-secondary-75);
+      margin-top: 4px;
+    }
+    .global-bar-block {
+      flex: 1;
+    }
+    .global-bar-title {
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      color: var(--fp-darkgrey);
+      margin-bottom: 8px;
+    }
+    .global-bar-sub {
+      font-size: var(--fs-xs);
+      color: var(--fp-secondary-75);
+      margin-top: 6px;
+    }
+    .global-bar-track {
+      height: 10px;
+      background: var(--fp-secondary-25);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+    .global-bar-fill {
+      height: 100%;
+      background: var(--fp-primary);
+      border-radius: 99px;
+      transition: width 0.6s ease;
+    }
+    .global-counts {
+      display: flex;
+      gap: 32px;
+      flex-shrink: 0;
+    }
+    .global-count-item {
+      text-align: center;
+    }
+    .global-count-num {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--fp-darkgrey);
+      line-height: 1;
+    }
+    .global-count-num.linked { color: var(--fp-success, #2a7a4b); }
+    .global-count-label {
+      font-size: var(--fs-xs);
+      color: var(--fp-secondary-75);
+      margin-top: 4px;
+    }
+    /* Projects breakdown table */
+    .global-table-wrap {
+      background: var(--fp-white);
+      border: 1px solid var(--fp-secondary-25);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      margin-bottom: 32px;
+    }
+    .global-table-head {
+      display: grid;
+      grid-template-columns: 1fr 100px 100px 120px 180px;
+      padding: 10px 20px;
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      color: var(--fp-secondary-75);
+      border-bottom: 1px solid var(--fp-secondary-25);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+    .global-table-row {
+      display: grid;
+      grid-template-columns: 1fr 100px 100px 120px 180px;
+      padding: 11px 20px;
+      font-size: var(--fs-xs);
+      color: var(--fp-darkgrey);
+      border-bottom: 1px solid var(--fp-secondary-25);
+      align-items: center;
+      cursor: pointer;
+      transition: background .12s;
+    }
+    .global-table-row:last-child { border-bottom: none; }
+    .global-table-row:hover { background: var(--fp-secondary-bg); }
+    .global-table-row:hover .row-project-name { color: var(--fp-primary); text-decoration: underline; }
+    .row-project-name { font-weight: 600; }
+    .row-pid {
+      display: inline-block;
+      background: var(--fp-secondary-25);
+      color: var(--fp-secondary-75);
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 4px;
+      padding: 1px 5px;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+    .row-mini-bar {
+      height: 6px;
+      background: var(--fp-secondary-25);
+      border-radius: 99px;
+      overflow: hidden;
+      width: 100px;
+    }
+    .row-mini-fill {
+      height: 100%;
+      background: var(--fp-primary);
+      border-radius: 99px;
+    }
+    .row-pct {
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      color: var(--fp-primary);
+      margin-left: 8px;
+    }
+    .global-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      padding: 60px 0;
+      color: var(--fp-secondary-75);
+      font-size: var(--fs-sm);
+    }
+    .global-spinner {
+      width: 28px; height: 28px;
+      border: 2.5px solid var(--fp-secondary-25);
+      border-top-color: var(--fp-primary);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
   </style>
 </head>
 <body>
@@ -716,14 +871,19 @@
   <button class="filter-btn" onclick="setFilter('rejected',this)">Rejected <span class="filter-count" id="fc-rejected">0</span></button>
 </div>
 
-<!-- Table -->
-<div class="table-section">
-  <div id="tableContainer">
-    <div class="state-box">
-      <div class="icon"><span class="material-icons-round" style="font-size:40px">manage_search</span></div>
-      <p>Select a project and run matching to get started.</p>
+<!-- Global compliance dashboard (shown before project selection) -->
+<div id="globalDashboard">
+  <div id="globalContent">
+    <div class="global-loading">
+      <div class="global-spinner"></div>
+      Loading compliance overview…
     </div>
   </div>
+</div>
+
+<!-- Table (shown after project selection) -->
+<div class="table-section" id="projectView" style="display:none">
+  <div id="tableContainer"></div>
 </div>
 
 <!-- Modal -->
@@ -848,12 +1008,98 @@
 
   // ── Init ─────────────────────────────────────────────────────────────────
   async function init() {
-    const res = await fetch('/api/projects');
-    const projects = await res.json();
+    const [projRes, _] = await Promise.all([
+      fetch('/api/projects'),
+      loadGlobalCompliance(),
+    ]);
+    const projects = await projRes.json();
     _allProjects = projects.filter(p => p.project_id);
     search.placeholder = 'Select a project…';
     dropdown.innerHTML = '';
     document.getElementById('loadBtn').disabled = false;
+  }
+
+  async function loadGlobalCompliance() {
+    try {
+      const res = await fetch('/api/compliance');
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      renderGlobalDashboard(data);
+    } catch (e) {
+      document.getElementById('globalContent').innerHTML =
+        `<div class="state-box"><div class="icon"><span class="material-icons-round" style="font-size:40px">error_outline</span></div>
+         <p>Could not load compliance overview: ${e.message}</p></div>`;
+    }
+  }
+
+  function renderGlobalDashboard(data) {
+    const { total, linked, pct, projects } = data;
+    const unlinked = total - linked;
+
+    document.getElementById('globalContent').innerHTML = `
+      <div class="global-hero">
+        <div class="global-score">
+          <div class="global-score-pct">${pct}%</div>
+          <div class="global-score-label">compliant</div>
+        </div>
+        <div class="global-bar-block">
+          <div class="global-bar-title">Consent coverage across all projects</div>
+          <div class="global-bar-track">
+            <div class="global-bar-fill" style="width:${pct}%"></div>
+          </div>
+          <div class="global-bar-sub">${linked} of ${total} images have a consent linked</div>
+        </div>
+        <div class="global-counts">
+          <div class="global-count-item">
+            <div class="global-count-num linked">${linked}</div>
+            <div class="global-count-label">With consent</div>
+          </div>
+          <div class="global-count-item">
+            <div class="global-count-num">${unlinked}</div>
+            <div class="global-count-label">Without consent</div>
+          </div>
+          <div class="global-count-item">
+            <div class="global-count-num">${projects.length}</div>
+            <div class="global-count-label">Projects</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="global-table-wrap">
+        <div class="global-table-head">
+          <div>Project</div>
+          <div>Images</div>
+          <div>Linked</div>
+          <div>Missing</div>
+          <div>Coverage</div>
+        </div>
+        ${projects.map(p => `
+          <div class="global-table-row" onclick="comboSelectByProjectId('${p.project_id}')">
+            <div>
+              <span class="row-project-name">${p.name.replace(/\+/g, ' ')}</span>
+              ${p.project_id ? `<span class="row-pid">${p.project_id}</span>` : ''}
+            </div>
+            <div>${p.total}</div>
+            <div>${p.linked}</div>
+            <div>${p.total - p.linked}</div>
+            <div style="display:flex;align-items:center;gap:0">
+              <div class="row-mini-bar">
+                <div class="row-mini-fill" style="width:${p.pct}%"></div>
+              </div>
+              <span class="row-pct">${p.pct}%</span>
+            </div>
+          </div>`).join('')}
+      </div>
+    `;
+  }
+
+  function comboSelectByProjectId(pid) {
+    // Select the project in the combobox and kick off matching
+    comboSelect(pid);
+    document.getElementById('globalDashboard').style.display = 'none';
+    document.getElementById('projectView').style.display = '';
+    document.getElementById('dashboard').style.display = '';
+    document.getElementById('filtersBar').style.display = '';
   }
 
   // ── Progress bar ──────────────────────────────────────────────────────────
@@ -900,6 +1146,10 @@
     const pid = _selectedProjectId;
     if (!pid) return;
     currentProjectId = pid;
+
+    // Switch from global view to project view
+    document.getElementById('globalDashboard').style.display = 'none';
+    document.getElementById('projectView').style.display = '';
 
     document.getElementById('tableContainer').innerHTML =
       `<div class="state-box">

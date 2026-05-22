@@ -390,6 +390,63 @@ def debug_project(project_id: str):
     }
 
 
+@app.get("/api/compliance")
+def get_compliance():
+    """Global compliance overview — reads Consent field from every image in Canto."""
+    tree = canto.get_folder_tree()
+
+    projects_out = []
+    grand_total = 0
+    grand_linked = 0
+
+    for folder in tree:
+        m = re.search(r"[_](\d{3,5})[_]", folder.get("name", ""))
+        pid = m.group(1) if m else None
+
+        # Find the Photos sub-album; fall back to searching by project ID keyword
+        photos_album = next(
+            (c for c in folder.get("children", []) if re.search(r"photo", c.get("name", ""), re.I)),
+            None,
+        )
+
+        if photos_album:
+            images = canto.get_album_images(photos_album["id"])
+        elif pid:
+            images = canto.get_project_images(pid)
+        else:
+            images = []
+
+        total = len(images)
+        linked = sum(
+            1 for img in images
+            if img.get("additional", {}).get("Consent") or
+               img.get("metadata", {}).get("Consent")
+        )
+
+        grand_total += total
+        grand_linked += linked
+
+        if total > 0:
+            projects_out.append({
+                "id": folder["id"],
+                "name": folder.get("name", ""),
+                "project_id": pid,
+                "total": total,
+                "linked": linked,
+                "pct": round(linked / total * 100) if total else 0,
+            })
+
+    # Sort by compliance % ascending (worst first)
+    projects_out.sort(key=lambda p: p["pct"])
+
+    return {
+        "total": grand_total,
+        "linked": grand_linked,
+        "pct": round(grand_linked / grand_total * 100) if grand_total else 0,
+        "projects": projects_out,
+    }
+
+
 @app.get("/api/matches/{project_id}")
 def get_matches(project_id: str, album_id: str | None = None):
     """Run matching for a project and return scored pairs."""
