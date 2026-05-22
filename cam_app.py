@@ -1,5 +1,7 @@
 """CAM — Consent Asset Matcher API"""
 
+import json
+import os
 import re
 from pathlib import Path
 from fastapi import FastAPI, Form, HTTPException, Request
@@ -293,8 +295,29 @@ class AuthMiddleware(BaseHTTPMiddleware):
 
 app.add_middleware(AuthMiddleware)
 
-# In-memory decisions store: {image_id: "confirmed" | "rejected"}
-decisions: dict[str, dict] = {}
+# Decisions store — persisted to /tmp/cam-decisions.json so it survives
+# within a warm Lambda instance. Cold starts will re-read from disk.
+_DECISIONS_PATH = Path("/tmp/cam-decisions.json") if os.getenv("VERCEL") else Path(".cache/decisions.json")
+_DECISIONS_PATH.parent.mkdir(parents=True, exist_ok=True)
+
+
+def _load_decisions() -> dict:
+    try:
+        if _DECISIONS_PATH.exists():
+            return json.loads(_DECISIONS_PATH.read_text())
+    except Exception:
+        pass
+    return {}
+
+
+def _save_decisions(d: dict):
+    try:
+        _DECISIONS_PATH.write_text(json.dumps(d))
+    except Exception:
+        pass
+
+
+decisions: dict[str, dict] = _load_decisions()
 
 
 # ── helpers ──────────────────────────────────────────────────────────────────
@@ -600,6 +623,7 @@ def set_decision(req: DecisionRequest):
         raise HTTPException(400, "action must be 'confirmed' or 'rejected'")
 
     decisions[req.image_id] = {"action": req.action, "pdf_id": req.pdf_id}
+    _save_decisions(decisions)
 
     if req.action == "confirmed":
         success = canto.link_related_file(
