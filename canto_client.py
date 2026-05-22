@@ -58,10 +58,14 @@ def _headers() -> dict:
 
 def _request(method: str, url: str, **kwargs) -> requests.Response:
     """HTTP request with automatic token refresh on 401."""
-    resp = requests.request(method, url, headers=_headers(), **kwargs)
+    # Merge caller-supplied headers with auth header (auth wins on conflict)
+    extra = kwargs.pop("headers", {})
+    headers = {**extra, **_headers()}
+    resp = requests.request(method, url, headers=headers, **kwargs)
     if resp.status_code == 401:
         _tm.invalidate()
-        resp = requests.request(method, url, headers=_headers(), **kwargs)
+        headers = {**extra, **_headers()}
+        resp = requests.request(method, url, headers=headers, **kwargs)
     return resp
 
 

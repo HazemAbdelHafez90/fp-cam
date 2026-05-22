@@ -393,7 +393,6 @@ def test_relate(body: dict):
     # ── Strategy 1: PUT relatedAssets array ──────────────────────────────────
     try:
         r = canto._request("PUT", f"{canto.BASE_URL}/api/v1/image/{image_id}",
-            headers={**canto._headers(), "Content-Type": "application/json"},
             json={"relatedAssets": [{"id": doc_id, "scheme": "document"}]})
         results["strategy1_relatedAssets"] = {"status": r.status_code, "body": r.text[:300]}
     except Exception as e:
@@ -402,16 +401,14 @@ def test_relate(body: dict):
     # ── Strategy 2: POST to /relatedAsset sub-resource ───────────────────────
     try:
         r = canto._request("POST", f"{canto.BASE_URL}/api/v1/image/{image_id}/relatedAsset",
-            headers={**canto._headers(), "Content-Type": "application/json"},
             json={"id": doc_id, "scheme": "document"})
         results["strategy2_post_relatedAsset"] = {"status": r.status_code, "body": r.text[:300]}
     except Exception as e:
         results["strategy2_post_relatedAsset"] = {"error": str(e)}
 
-    # ── Strategy 3: PUT additional.Consent (old approach, for reference) ─────
+    # ── Strategy 3: PUT additional.Consent — comma-separated for multi ───────
     try:
         r = canto._request("PUT", f"{canto.BASE_URL}/api/v1/image/{image_id}",
-            headers={**canto._headers(), "Content-Type": "application/json"},
             json={"additional": {"Consent": doc_id}})
         results["strategy3_additional_consent"] = {"status": r.status_code, "body": r.text[:300]}
     except Exception as e:
