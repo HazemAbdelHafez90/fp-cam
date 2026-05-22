@@ -174,19 +174,19 @@ def get_asset(scheme: str, asset_id: str) -> dict:
     return resp.json()
 
 
+def link_related_file(image_id: str, image_name: str, doc_id: str, doc_name: str) -> bool:
+    """Link a consent PDF to an image via Canto's Related Files feature."""
+    payload = {
+        "relatedName": "",
+        "relatedContents": [
+            {"id": image_id, "scheme": "image",    "displayName": image_name},
+            {"id": doc_id,   "scheme": "document", "displayName": doc_name},
+        ],
+    }
+    resp = _request("POST", f"{BASE_URL}/rest/related/create", json=payload)
+    return resp.status_code == 200
+
+
 def update_consent_field(image_id: str, pdf_id: str) -> bool:
-    headers = {**_headers(), "Content-Type": "application/json"}
-    resp = requests.put(
-        f"{BASE_URL}/api/v1/image/{image_id}",
-        headers=headers,
-        json={"additional": {"Consent": pdf_id}},
-    )
-    if resp.status_code == 401:
-        _tm.invalidate()
-        headers = {**_headers(), "Content-Type": "application/json"}
-        resp = requests.put(
-            f"{BASE_URL}/api/v1/image/{image_id}",
-            headers=headers,
-            json={"additional": {"Consent": pdf_id}},
-        )
-    return resp.status_code in (200, 201, 204)
+    """Legacy — kept for reference but writes don't work via API v1."""
+    return False

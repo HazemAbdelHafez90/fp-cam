@@ -1236,10 +1236,10 @@
         <td>
           <div class="action-row">
             ${bm ? `
-            <button class="btn-confirm ${confirmActive}" onclick="decide('${m.image_id}','${bm.pdf_id}','confirmed')">
+            <button class="btn-confirm ${confirmActive}" onclick="decide('${m.image_id}','${m.image_name}','${bm.pdf_id}','${bm.pdf_name}','confirmed')">
               <span class="material-icons-round" style="font-size:12px">check</span>
             </button>
-            <button class="btn-reject ${rejectActive}" onclick="decide('${m.image_id}','${bm.pdf_id}','rejected')">
+            <button class="btn-reject ${rejectActive}" onclick="decide('${m.image_id}','${m.image_name}','${bm.pdf_id}','${bm.pdf_name}','rejected')">
               <span class="material-icons-round" style="font-size:12px">close</span>
             </button>
             ` : ''}
@@ -1252,11 +1252,11 @@
   }
 
   // ── Decisions ─────────────────────────────────────────────────────────────
-  async function decide(imageId, pdfId, action) {
+  async function decide(imageId, imageName, pdfId, pdfName, action) {
     const res = await fetch('/api/decision', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
-      body: JSON.stringify({image_id: imageId, pdf_id: pdfId, action}),
+      body: JSON.stringify({image_id: imageId, image_name: imageName, pdf_id: pdfId, pdf_name: pdfName, action}),
     });
     const data = await res.json();
 
@@ -1312,7 +1312,7 @@
           </div>
           <div class="c-actions">
             <a href="${c.pdf_url}" target="_blank" class="btn-detail" style="text-decoration:none">View PDF</a>
-            <button class="btn-confirm" onclick="decide('${m.image_id}','${c.pdf_id}','confirmed');closeModal()">Confirm</button>
+            <button class="btn-confirm" onclick="decide('${m.image_id}','${m.image_name}','${c.pdf_id}','${c.pdf_name}','confirmed');closeModal()">Confirm</button>
           </div>
         </div>`;
     }).join('');

@@ -390,29 +390,17 @@ def test_relate(body: dict):
 
     results = {}
 
-    # ── Strategy 1: PUT relatedAssets array ──────────────────────────────────
+    # ── /rest/related/create — the correct Canto Related Files endpoint ───────
     try:
-        r = canto._request("PUT", f"{canto.BASE_URL}/api/v1/image/{image_id}",
-            json={"relatedAssets": [{"id": doc_id, "scheme": "document"}]})
-        results["strategy1_relatedAssets"] = {"status": r.status_code, "body": r.text[:300]}
+        img  = canto.get_asset("image",    image_id)
+        doc  = canto.get_asset("document", doc_id)
+        success = canto.link_related_file(
+            image_id,  img.get("name", image_id),
+            doc_id,    doc.get("name", doc_id),
+        )
+        results["rest_related_create"] = {"success": success}
     except Exception as e:
-        results["strategy1_relatedAssets"] = {"error": str(e)}
-
-    # ── Strategy 2: POST to /relatedAsset sub-resource ───────────────────────
-    try:
-        r = canto._request("POST", f"{canto.BASE_URL}/api/v1/image/{image_id}/relatedAsset",
-            json={"id": doc_id, "scheme": "document"})
-        results["strategy2_post_relatedAsset"] = {"status": r.status_code, "body": r.text[:300]}
-    except Exception as e:
-        results["strategy2_post_relatedAsset"] = {"error": str(e)}
-
-    # ── Strategy 3: PUT additional.Consent — comma-separated for multi ───────
-    try:
-        r = canto._request("PUT", f"{canto.BASE_URL}/api/v1/image/{image_id}",
-            json={"additional": {"Consent": doc_id}})
-        results["strategy3_additional_consent"] = {"status": r.status_code, "body": r.text[:300]}
-    except Exception as e:
-        results["strategy3_additional_consent"] = {"error": str(e)}
+        results["rest_related_create"] = {"error": str(e)}
 
     # ── Read asset back to see resulting structure ────────────────────────────
     try:
@@ -597,21 +585,26 @@ def get_matches(project_id: str, album_id: str | None = None):
 
 
 class DecisionRequest(BaseModel):
-    image_id:  str
-    pdf_id:    str
-    action:    str   # "confirmed" | "rejected"
+    image_id:   str
+    image_name: str = ""
+    pdf_id:     str
+    pdf_name:   str = ""
+    action:     str   # "confirmed" | "rejected"
 
 
 @app.post("/api/decision")
 def set_decision(req: DecisionRequest):
-    """Record a confirm or reject decision. On confirm, links assets in Canto."""
+    """Record a confirm or reject decision. On confirm, links assets via Related Files."""
     if req.action not in ("confirmed", "rejected"):
         raise HTTPException(400, "action must be 'confirmed' or 'rejected'")
 
     decisions[req.image_id] = {"action": req.action, "pdf_id": req.pdf_id}
 
     if req.action == "confirmed":
-        success = canto.update_consent_field(req.image_id, req.pdf_id)
+        success = canto.link_related_file(
+            req.image_id, req.image_name,
+            req.pdf_id,   req.pdf_name,
+        )
         return {"status": "ok", "linked_in_canto": success}
 
     return {"status": "ok", "linked_in_canto": False}
