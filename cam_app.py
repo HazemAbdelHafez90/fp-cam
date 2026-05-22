@@ -556,6 +556,10 @@ def get_compliance():
 @app.get("/api/matches/{project_id}")
 def get_matches(project_id: str, album_id: str | None = None):
     """Run matching for a project and return scored pairs."""
+    # Refresh decisions from Supabase so confirmed state is always current
+    global decisions
+    decisions = _load_decisions()
+
     # Prefer direct album fetch (accurate) over keyword search (unreliable)
     if album_id:
         images = canto.get_album_images(album_id)
