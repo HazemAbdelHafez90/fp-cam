@@ -2,11 +2,14 @@
 
 import os
 import re
+from pathlib import Path
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
+
+BASE_DIR = Path(__file__).resolve().parent
 
 import canto_client as canto
 from pdf_parser import parse_consent_pdf
@@ -202,8 +205,8 @@ def bulk_confirm(project_id: str):
 
 # ── static files (frontend) ───────────────────────────────────────────────────
 
-app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/static", StaticFiles(directory=BASE_DIR / "static"), name="static")
 
 @app.get("/")
 def root():
-    return FileResponse("static/index.html")
+    return FileResponse(BASE_DIR / "static" / "index.html")

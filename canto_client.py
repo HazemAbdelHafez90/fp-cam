@@ -6,7 +6,10 @@ import requests
 from pathlib import Path
 from dotenv import load_dotenv
 
-CACHE_DIR = Path(".cache/pdfs")
+# /tmp is the only writable directory on serverless platforms (Vercel, etc.)
+# Locally .cache/pdfs is used for persistence across restarts.
+_default_cache = Path("/tmp/cam-pdfs") if os.getenv("VERCEL") else Path(".cache/pdfs")
+CACHE_DIR = Path(os.getenv("PDF_CACHE_DIR", str(_default_cache)))
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 load_dotenv()
