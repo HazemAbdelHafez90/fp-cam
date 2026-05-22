@@ -595,12 +595,14 @@
     .c-name { font-weight: 700; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px; }
     .c-signals { display: flex; flex-wrap: wrap; gap: 6px; }
     .c-sig {
-      display: inline-flex; align-items: center; gap: 4px;
-      background: var(--fp-secondary-bg); border: 1px solid var(--fp-secondary-25);
-      border-radius: 99px; padding: 2px 8px;
-      font-size: 10px; color: var(--fp-secondary-75);
+      display: inline-flex; align-items: center; gap: 5px;
+      background: var(--fp-white); border: 1px solid var(--fp-secondary-100);
+      border-radius: 99px; padding: 3px 10px;
+      font-size: 11px; color: var(--fp-darkgrey);
     }
+    .c-sig-label { color: var(--fp-secondary-75); }
     .c-sig-val { font-weight: 700; color: var(--fp-darkgrey); }
+    .c-sig-detail { color: var(--fp-secondary-75); }
     .c-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
     /* ── Toast ── */
@@ -1324,9 +1326,9 @@
                        : 'background:var(--fp-secondary-15);color:var(--fp-secondary-75);border:1px solid var(--fp-secondary-25)';
       const sigs = Object.entries(c.signals || {}).map(([k, v]) => `
         <span class="c-sig">
-          <span>${k}</span>
+          <span class="c-sig-label">${k}</span>
           <span class="c-sig-val">${v.score.toFixed(0)}</span>
-          <span style="color:var(--fp-secondary-50)">· ${v.detail}</span>
+          <span class="c-sig-detail">· ${v.detail}</span>
         </span>`).join('');
       return `
         <div class="candidate">
