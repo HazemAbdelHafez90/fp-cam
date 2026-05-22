@@ -363,6 +363,21 @@ def list_projects():
     return projects
 
 
+@app.get("/api/debug/{project_id}")
+def debug_project(project_id: str):
+    """Return raw Canto search results for images and documents (unfiltered)."""
+    raw_images = canto.search_assets(keyword=project_id, scheme="image", limit=100)
+    raw_docs   = canto.search_assets(keyword=project_id, scheme="document", limit=100)
+    def slim(assets):
+        return [{"id": a.get("id"), "name": a.get("name"),
+                 "albums": [al.get("namePath") for al in a.get("relatedAlbums", [])]}
+                for a in assets]
+    return {
+        "images": {"total": len(raw_images), "items": slim(raw_images)},
+        "documents": {"total": len(raw_docs), "items": slim(raw_docs)},
+    }
+
+
 @app.get("/api/matches/{project_id}")
 def get_matches(project_id: str):
     """Run matching for a project and return scored pairs."""
