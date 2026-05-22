@@ -574,17 +574,34 @@
     .candidate {
       border: 1px solid var(--fp-secondary-25);
       border-radius: var(--radius-sm);
-      padding: 12px 14px;
+      padding: 14px 16px;
       margin-bottom: 8px;
-      display: flex; align-items: center; gap: 12px;
-      transition: border-color .15s;
+      display: grid;
+      grid-template-columns: 56px 1fr auto;
+      align-items: center;
+      gap: 16px;
+      transition: border-color .15s, box-shadow .15s;
+      background: var(--fp-white);
     }
-    .candidate:hover { border-color: var(--fp-primary); box-shadow: var(--shadow-card); }
-    .c-score { font-size: var(--fs-xl); font-weight: 700; min-width: 44px; text-align: center; }
-    .c-info { flex: 1; }
-    .c-name { font-weight: 700; font-size: var(--fs-sm); }
-    .c-sigs { font-size: var(--fs-xs); color: var(--fp-secondary-75); margin-top: 3px; line-height: 1.6; }
-    .c-actions { display: flex; gap: 6px; }
+    .candidate:hover { border-color: var(--fp-primary); box-shadow: 0 2px 8px rgba(208,52,58,.08); }
+    .c-score-block { text-align: center; }
+    .c-score { font-size: 22px; font-weight: 700; line-height: 1; }
+    .c-tier-pill {
+      display: inline-block; margin-top: 4px;
+      font-size: 9px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
+      padding: 2px 6px; border-radius: 99px;
+    }
+    .c-info { flex: 1; min-width: 0; }
+    .c-name { font-weight: 700; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px; }
+    .c-signals { display: flex; flex-wrap: wrap; gap: 6px; }
+    .c-sig {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--fp-secondary-bg); border: 1px solid var(--fp-secondary-25);
+      border-radius: 99px; padding: 2px 8px;
+      font-size: 10px; color: var(--fp-secondary-75);
+    }
+    .c-sig-val { font-weight: 700; color: var(--fp-darkgrey); }
+    .c-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
     /* ── Toast ── */
     .toast {
@@ -1301,14 +1318,25 @@
 
     const candidatesHtml = (m.candidates || []).map(c => {
       const scoreColor = c.score >= 85 ? 'var(--fp-success)' : c.score >= 60 ? 'var(--fp-warning)' : 'var(--fp-secondary-50)';
+      const tierLabel  = c.score >= 85 ? 'AUTO' : c.score >= 60 ? 'REVIEW' : 'LOW';
+      const tierBg     = c.score >= 85 ? 'background:var(--fp-light-primary);color:var(--fp-primary);border:1px solid var(--fp-primary)'
+                       : c.score >= 60 ? 'background:#FFF8E6;color:#7A5500;border:1px solid var(--fp-warning)'
+                       : 'background:var(--fp-secondary-15);color:var(--fp-secondary-75);border:1px solid var(--fp-secondary-25)';
+      const sigs = Object.entries(c.signals || {}).map(([k, v]) => `
+        <span class="c-sig">
+          <span>${k}</span>
+          <span class="c-sig-val">${v.score.toFixed(0)}</span>
+          <span style="color:var(--fp-secondary-50)">· ${v.detail}</span>
+        </span>`).join('');
       return `
         <div class="candidate">
-          <div class="c-score" style="color:${scoreColor}">${c.score.toFixed(0)}%</div>
+          <div class="c-score-block">
+            <div class="c-score" style="color:${scoreColor}">${c.score.toFixed(0)}%</div>
+            <div class="c-tier-pill" style="${tierBg}">${tierLabel}</div>
+          </div>
           <div class="c-info">
-            <div class="c-name">${c.pdf_name}</div>
-            <div class="c-sigs">
-              ${Object.entries(c.signals||{}).map(([k,v])=>`${k}: ${v.score.toFixed(0)} — ${v.detail}`).join('&nbsp;&nbsp;·&nbsp;&nbsp;')}
-            </div>
+            <div class="c-name" title="${c.pdf_name}">${c.pdf_name}</div>
+            <div class="c-signals">${sigs}</div>
           </div>
           <div class="c-actions">
             <a href="${c.pdf_url}" target="_blank" class="btn-detail" style="text-decoration:none">View PDF</a>
@@ -1317,9 +1345,19 @@
         </div>`;
     }).join('');
 
+    const cantoLink = m.image_canto_url
+      ? `<a href="${m.image_canto_url}" target="_blank" class="btn-detail" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-top:6px">
+           <span class="material-icons-round" style="font-size:13px">open_in_new</span> Open in Canto
+         </a>` : '';
+
     document.getElementById('modalBody').innerHTML = `
       <div class="modal-title">${m.image_name}</div>
-      ${m.image_thumb ? `<img class="modal-img" src="${m.image_thumb}" alt="" />` : ''}
+      ${m.image_thumb
+        ? `<div style="position:relative">
+             <img class="modal-img" src="${m.image_thumb}" alt="" style="max-height:320px" />
+             ${cantoLink}
+           </div>`
+        : cantoLink}
       <div class="meta-row">
         <div class="meta-item"><div class="m-key">Person shown</div><div class="m-val">${m.person_shown || '—'}</div></div>
         <div class="meta-item"><div class="m-key">Location</div><div class="m-val">${[m.city,m.country].filter(Boolean).join(', ')||'—'}</div></div>

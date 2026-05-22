@@ -532,7 +532,8 @@ def get_matches(project_id: str, album_id: str | None = None):
         results.append({
             "image_id":      image["id"],
             "image_name":    image.get("name", ""),
-            "image_thumb":   image.get("url", {}).get("previewURI240", ""),
+            "image_thumb":   image.get("url", {}).get("directUrlPreview", "") or image.get("url", {}).get("previewURI240", ""),
+            "image_canto_url": image.get("url", {}).get("detail", ""),
             "person_shown":  img_additional.get("Person Shown in the Image") or "",
             "country":       img_additional.get("Country") or "",
             "city":          img_additional.get("City") or "",
