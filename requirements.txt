@@ -1,0 +1,5 @@
+requests
+pdfplumber
+rapidfuzz
+python-dotenv
+rich

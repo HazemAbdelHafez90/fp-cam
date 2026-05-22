@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "CAM",
+      "runtimeExecutable": "uvicorn",
+      "runtimeArgs": ["api:app", "--host", "0.0.0.0", "--port", "8000", "--reload"],
+      "port": 8000,
+      "env": {
+        "CANTO_TOKEN": "7bf30e7517c34eb09655e8d21852023d"
+      }
+    }
+  ]
+}

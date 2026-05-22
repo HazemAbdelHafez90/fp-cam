@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CAM — Consent Asset Matcher</title>
+  <link rel="stylesheet" href="/static/colors_and_type.css" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--fp-secondary-bg);
+      color: var(--fp-darkgrey);
+      min-height: 100vh;
+      font-size: var(--fs-sm);
+    }
+
+    /* ── Header ── */
+    header {
+      background: var(--fp-white);
+      border-bottom: 1px solid var(--fp-primary);
+      height: 56px;
+      display: flex;
+      align-items: center;
+      padding: 0 32px;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo img { height: 20px; }
+    .logo-divider {
+      width: 1px;
+      height: 18px;
+      background: var(--fp-secondary-25);
+    }
+    .logo-product {
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      color: var(--fp-darkgrey);
+      letter-spacing: 0;
+    }
+    .logo-product span {
+      color: var(--fp-primary);
+    }
+
+    /* ── Controls ── */
+    .controls {
+      background: var(--fp-white);
+      border-bottom: 1px solid var(--fp-secondary-25);
+      padding: 12px 32px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ── Custom combobox ── */
+    .combo-wrap {
+      position: relative;
+      min-width: 320px;
+    }
+    .combo-trigger {
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      border: 1px solid var(--fp-secondary-100);
+      border-radius: var(--radius-sm);
+      padding: 0;
+      background: var(--fp-white);
+      color: var(--fp-darkgrey);
+      width: 100%;
+      cursor: pointer;
+      transition: border-color .15s, box-shadow .15s;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: stretch;
+    }
+    .combo-trigger:focus-within {
+      border-color: var(--fp-primary);
+      box-shadow: var(--shadow-input);
+      outline: none;
+    }
+    .combo-trigger[aria-expanded="true"] {
+      border-color: var(--fp-primary);
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+    .combo-search {
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      border: none;
+      outline: none;
+      padding: 8px 10px 8px 12px;
+      background: transparent;
+      color: var(--fp-darkgrey);
+      width: 100%;
+      cursor: pointer;
+    }
+    .combo-search::placeholder { color: var(--fp-secondary-50); }
+    .combo-search:focus { cursor: text; }
+    .combo-chevron {
+      display: flex;
+      align-items: center;
+      padding: 0 10px;
+      border-left: 1px solid var(--fp-secondary-25);
+      color: var(--fp-secondary-75);
+      transition: color .15s, transform .15s;
+      pointer-events: none;
+    }
+    .combo-trigger[aria-expanded="true"] .combo-chevron {
+      color: var(--fp-primary);
+      transform: rotate(180deg);
+    }
+    .combo-chevron svg { display: block; }
+
+    .combo-dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0; right: 0;
+      background: var(--fp-white);
+      border: 1px solid var(--fp-primary);
+      border-top: none;
+      border-bottom-left-radius: var(--radius-sm);
+      border-bottom-right-radius: var(--radius-sm);
+      box-shadow: var(--shadow-pop);
+      z-index: 50;
+      max-height: 320px;
+      overflow-y: auto;
+      display: none;
+    }
+    .combo-dropdown.open { display: block; }
+
+    .combo-option {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      padding: 9px 14px;
+      cursor: pointer;
+      transition: background .1s;
+      border-bottom: 1px solid var(--fp-secondary-15);
+    }
+    .combo-option:last-child { border-bottom: none; }
+    .combo-option:hover,
+    .combo-option[aria-selected="true"] {
+      background: var(--fp-secondary-15);
+    }
+    .combo-option.active-option { background: var(--fp-light-primary); }
+    .combo-option.aria-focused {
+      background: var(--fp-secondary-15);
+      outline: 1px solid var(--fp-primary);
+      outline-offset: -1px;
+    }
+    .combo-option-id {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--fp-primary);
+      background: var(--fp-light-primary);
+      border: 1px solid rgba(208,52,58,.18);
+      border-radius: 3px;
+      padding: 1px 5px;
+      flex-shrink: 0;
+      line-height: 1.4;
+    }
+    .combo-option-name {
+      font-size: var(--fs-sm);
+      color: var(--fp-darkgrey);
+      font-weight: 700;
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .combo-empty {
+      padding: 16px 14px;
+      font-size: var(--fs-sm);
+      color: var(--fp-secondary-75);
+      font-style: italic;
+    }
+    .combo-loading {
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: var(--fs-sm);
+      color: var(--fp-secondary-75);
+    }
+    .combo-spinner {
+      width: 14px; height: 14px;
+      border: 2px solid var(--fp-secondary-25);
+      border-top-color: var(--fp-primary);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    .btn {
+      font-family: var(--font-sans);
+      font-size: var(--fs-sm);
+      font-weight: 700;
+      border-radius: var(--radius-sm);
+      padding: 8px 18px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: background .15s, color .15s, border-color .15s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: var(--fp-primary);
+      color: var(--fp-white);
+      border-color: var(--fp-primary);
+    }
+    .btn-primary:hover { background: var(--fp-primary-hover); border-color: var(--fp-primary-hover); }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .btn-secondary {
+      background: var(--fp-white);
+      color: var(--fp-darkgrey);
+      border-color: var(--fp-secondary-25);
+    }
+    .btn-secondary:hover { border-color: var(--fp-secondary-100); background: var(--fp-secondary-15); }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--fp-primary);
+      border-color: var(--fp-primary);
+    }
+    .btn-ghost:hover { background: var(--fp-light-primary); }
+
+    /* ── Dashboard ── */
+    .dashboard {
+      padding: 20px 32px 0;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+    }
+
+    .stat-card {
+      background: var(--fp-white);
+      border: 1px solid var(--fp-secondary-25);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+    }
+    .stat-card .s-label {
+      font-size: var(--fs-xs);
+      color: var(--fp-secondary-100);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .stat-card .s-value {
+      font-size: var(--fs-2xl);
+      font-weight: 700;
+      line-height: 1;
+    }
+    .stat-card .s-sub {
+      font-size: var(--fs-xs);
+      color: var(--fp-secondary-75);
+      margin-top: 4px;
+    }
+    .stat-card.c-confirmed  .s-value { color: var(--fp-success); }
+    .stat-card.c-auto       .s-value { color: var(--fp-primary); }
+    .stat-card.c-review     .s-value { color: var(--fp-warning); }
+    .stat-card.c-missing    .s-value { color: var(--fp-secondary-75); }
+    .stat-card.c-unresolvable .s-value { color: var(--fp-error); }
+    .stat-card.c-compliance .s-value { color: var(--fp-success); }
+
+    /* compliance card spans 2 cols */
+    .stat-card.c-compliance { grid-column: span 1; }
+
+    /* progress bar */
+    .progress-wrap { margin-top: 8px; }
+    .progress-bar {
+      height: 4px;
+      background: var(--fp-secondary-25);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--fp-success);
+      border-radius: 2px;
+      transition: width .4s ease;
+    }
+
+    /* ── Filters ── */
+    .filters {
+      padding: 14px 32px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .filter-btn {
+      font-family: var(--font-sans);
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--fp-secondary-25);
+      background: var(--fp-white);
+      cursor: pointer;
+      color: var(--fp-secondary-100);
+      transition: all .15s;
+    }
+    .filter-btn:hover { border-color: var(--fp-secondary-100); color: var(--fp-darkgrey); }
+    .filter-btn.active {
+      background: var(--fp-darkgrey);
+      border-color: var(--fp-darkgrey);
+      color: var(--fp-white);
+    }
+    .filter-count {
+      display: inline-block;
+      background: var(--fp-secondary-20);
+      border-radius: var(--radius-pill);
+      padding: 0 5px;
+      font-size: 10px;
+      margin-left: 3px;
+      color: var(--fp-secondary-100);
+    }
+    .filter-btn.active .filter-count {
+      background: rgba(255,255,255,0.2);
+      color: var(--fp-white);
+    }
+
+    /* ── Table wrap ── */
+    .table-section {
+      padding: 14px 32px 40px;
+    }
+
+    .table-wrap {
+      background: var(--fp-white);
+      border: 1px solid var(--fp-secondary-25);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: var(--fs-sm);
+    }
+    thead { background: var(--fp-secondary-15); }
+    th {
+      padding: 9px 14px;
+      text-align: left;
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      color: var(--fp-secondary-100);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      border-bottom: 1px solid var(--fp-primary);
+      white-space: nowrap;
+    }
+    td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--fp-secondary-25);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--fp-secondary-15); }
+
+    /* Decision row tints — no side-stripe borders */
+    tr.confirmed td { background: rgba(88,132,100,0.06); }
+    tr.rejected  td { background: rgba(216,82,82,0.06); }
+
+    .thumb {
+      width: 60px; height: 42px;
+      object-fit: cover;
+      border-radius: var(--radius-sm);
+      display: block;
+      background: var(--fp-secondary-20);
+    }
+    .thumb-ph {
+      width: 60px; height: 42px;
+      border-radius: var(--radius-sm);
+      background: var(--fp-secondary-20);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .thumb-ph span { font-size: 18px; color: var(--fp-secondary-50); }
+
+    .cell-primary { font-weight: 700; color: var(--fp-darkgrey); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cell-secondary { font-size: var(--fs-xs); color: var(--fp-secondary-75); margin-top: 2px; }
+
+    /* Tier pills */
+    .tier-pill {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: var(--radius-pill);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .tier-auto     { background: var(--fp-light-primary); color: var(--fp-primary); border: 1px solid var(--fp-primary); }
+    .tier-review   { background: #FFF8E6; color: #7A5500; border: 1px solid var(--fp-warning); }
+    .tier-skip     { background: var(--fp-secondary-15); color: var(--fp-secondary-75); border: 1px solid var(--fp-secondary-25); }
+    .tier-none     { background: var(--fp-secondary-15); color: var(--fp-secondary-75); border: 1px solid var(--fp-secondary-25); }
+
+    .score-val { font-weight: 700; font-size: var(--fs-base); }
+
+    .signal-grid { font-size: 11px; color: var(--fp-secondary-75); line-height: 1.7; }
+
+    /* Action buttons */
+    .action-row { display: flex; gap: 5px; align-items: center; }
+    .btn-confirm, .btn-reject, .btn-detail {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all .15s;
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .btn-confirm {
+      border: 1px solid var(--fp-success);
+      background: var(--fp-white);
+      color: var(--fp-success);
+    }
+    .btn-confirm:hover, .btn-confirm.active {
+      background: var(--fp-success);
+      color: var(--fp-white);
+    }
+    .btn-reject {
+      border: 1px solid var(--fp-error);
+      background: var(--fp-white);
+      color: var(--fp-error);
+    }
+    .btn-reject:hover, .btn-reject.active {
+      background: var(--fp-error);
+      color: var(--fp-white);
+    }
+    .btn-detail {
+      border: 1px solid var(--fp-secondary-25);
+      background: var(--fp-white);
+      color: var(--fp-secondary-100);
+    }
+    .btn-detail:hover { border-color: var(--fp-secondary-100); color: var(--fp-darkgrey); }
+
+    .pdf-link {
+      color: var(--fp-primary);
+      font-size: var(--fs-xs);
+      text-decoration: none;
+      font-weight: 700;
+      display: block;
+      max-width: 200px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .pdf-link:hover { color: var(--fp-primary-hover); text-decoration: underline; }
+
+    /* ── Empty / loading ── */
+    .state-box {
+      text-align: center;
+      padding: 80px 32px;
+      color: var(--fp-secondary-75);
+    }
+    .state-box .icon { font-size: 36px; color: var(--fp-secondary-50); margin-bottom: 12px; }
+    .state-box p { font-size: var(--fs-sm); }
+
+    .spinner {
+      width: 28px; height: 28px;
+      border: 3px solid var(--fp-secondary-25);
+      border-top-color: var(--fp-primary);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Match progress ── */
+    .match-progress {
+      width: 360px;
+      max-width: 90vw;
+      margin: 0 auto;
+      text-align: left;
+    }
+    .mp-label {
+      font-size: var(--fs-sm);
+      color: var(--fp-secondary-75);
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .mp-label-text { transition: opacity .2s; }
+    .mp-pct {
+      font-family: var(--font-mono);
+      font-size: var(--fs-xs);
+      color: var(--fp-primary);
+      font-weight: 700;
+    }
+    .mp-track {
+      height: 3px;
+      background: var(--fp-secondary-25);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .mp-fill {
+      height: 100%;
+      background: var(--fp-primary);
+      border-radius: 2px;
+      width: 0%;
+      transition: width .55s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ── Modal ── */
+    .modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(238,237,235,0.7);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--fp-white);
+      border: 1px solid var(--fp-primary);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-pop);
+      width: 780px;
+      max-width: 95vw;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 28px;
+      position: relative;
+    }
+    .modal-close {
+      position: absolute; top: 16px; right: 16px;
+      background: var(--fp-secondary-15);
+      border: 1px solid var(--fp-secondary-25);
+      border-radius: var(--radius-sm);
+      width: 30px; height: 30px;
+      font-size: 14px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--fp-secondary-100);
+      transition: background .15s;
+    }
+    .modal-close:hover { background: var(--fp-secondary-20); }
+
+    .modal-title { font-size: var(--fs-lg); font-weight: 700; margin-bottom: 16px; }
+    .modal-img { width: 100%; max-height: 240px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 16px; box-shadow: var(--shadow-card); }
+
+    .meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+    .meta-item .m-key { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fp-secondary-75); }
+    .meta-item .m-val { font-weight: 700; margin-top: 2px; }
+
+    .section-label {
+      font-size: var(--fs-xs); font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      color: var(--fp-secondary-75);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--fp-secondary-25);
+    }
+
+    .candidate {
+      border: 1px solid var(--fp-secondary-25);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-bottom: 8px;
+      display: flex; align-items: center; gap: 12px;
+      transition: border-color .15s;
+    }
+    .candidate:hover { border-color: var(--fp-primary); box-shadow: var(--shadow-card); }
+    .c-score { font-size: var(--fs-xl); font-weight: 700; min-width: 44px; text-align: center; }
+    .c-info { flex: 1; }
+    .c-name { font-weight: 700; font-size: var(--fs-sm); }
+    .c-sigs { font-size: var(--fs-xs); color: var(--fp-secondary-75); margin-top: 3px; line-height: 1.6; }
+    .c-actions { display: flex; gap: 6px; }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: var(--fp-darkgrey); color: var(--fp-white);
+      padding: 10px 18px; border-radius: var(--radius-sm);
+      font-size: var(--fs-xs); font-weight: 700;
+      opacity: 0; transform: translateY(8px);
+      transition: all .25s; z-index: 300;
+      pointer-events: none;
+      box-shadow: var(--shadow-pop);
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.success { background: var(--fp-success); }
+    .toast.error   { background: var(--fp-error); }
+
+    /* ── No consent callout ── */
+    .no-consent-notice {
+      background: var(--fp-light-primary);
+      border: 1px solid var(--fp-primary);
+      border-radius: var(--radius-sm);
+      padding: 10px 16px;
+      font-size: var(--fs-xs);
+      color: var(--fp-darkgrey);
+      margin: 14px 32px 0;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .no-consent-notice span.material-icons-round { font-size: 16px; color: var(--fp-primary); }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <img src="/static/fairpicture.svg" alt="Fairpicture" />
+    <div class="logo-divider"></div>
+    <span class="logo-product">CAM — <span>Consent</span> Asset Matcher</span>
+  </div>
+  <div style="font-size:var(--fs-xs); color:var(--fp-secondary-75);">Internal tool · Beta</div>
+</header>
+
+<!-- Controls -->
+<div class="controls">
+  <div class="combo-wrap" id="comboWrap">
+    <div class="combo-trigger" id="comboTrigger" role="combobox" aria-haspopup="listbox"
+         aria-expanded="false" aria-labelledby="comboLabel" aria-controls="comboList"
+         aria-activedescendant="" tabindex="0">
+      <input class="combo-search" id="comboSearch" type="text" autocomplete="off"
+             placeholder="Loading projects…" aria-label="Select a project"
+             readonly />
+      <span class="combo-chevron" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+          <path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </span>
+    </div>
+    <div class="combo-dropdown" id="comboList" role="listbox" aria-label="Projects">
+      <div class="combo-loading">
+        <div class="combo-spinner"></div>
+        Loading projects…
+      </div>
+    </div>
+  </div>
+  <button class="btn btn-primary" id="loadBtn" disabled onclick="loadMatches()">
+    <span class="material-icons-round" style="font-size:15px">autorenew</span>
+    Run matching
+  </button>
+  <button class="btn btn-ghost" id="bulkBtn" style="display:none" onclick="bulkConfirm()">
+    <span class="material-icons-round" style="font-size:15px">task_alt</span>
+    Bulk confirm AUTO matches
+  </button>
+</div>
+
+<!-- No consent notice (hidden until data loads) -->
+<div class="no-consent-notice" id="noConsentNotice" style="display:none">
+  <span class="material-icons-round">info</span>
+  <span id="noConsentMsg"></span>
+</div>
+
+<!-- Dashboard -->
+<div class="dashboard" id="dashboard" style="display:none">
+  <div class="stat-card">
+    <div class="s-label"><span class="material-icons-round" style="font-size:13px">photo_library</span> Total images</div>
+    <div class="s-value" id="sTotal">—</div>
+  </div>
+  <div class="stat-card c-confirmed">
+    <div class="s-label"><span class="material-icons-round" style="font-size:13px">check_circle</span> Confirmed</div>
+    <div class="s-value" id="sConfirmed">—</div>
+  </div>
+  <div class="stat-card c-auto">
+    <div class="s-label"><span class="material-icons-round" style="font-size:13px">auto_awesome</span> AUTO ready</div>
+    <div class="s-value" id="sAuto">—</div>
+    <div class="s-sub">Score ≥ 85%</div>
+  </div>
+  <div class="stat-card c-review">
+    <div class="s-label"><span class="material-icons-round" style="font-size:13px">rate_review</span> Needs review</div>
+    <div class="s-value" id="sReview">—</div>
+    <div class="s-sub">Score 60–84%</div>
+  </div>
+  <div class="stat-card c-missing">
+    <div class="s-label"><span class="material-icons-round" style="font-size:13px">person_off</span> No person metadata</div>
+    <div class="s-value" id="sNoMeta">—</div>
+    <div class="s-sub">Person Shown empty</div>
+  </div>
+  <div class="stat-card c-unresolvable">
+    <div class="s-label"><span class="material-icons-round" style="font-size:13px">link_off</span> No consent found</div>
+    <div class="s-value" id="sNoConsent">—</div>
+    <div class="s-sub">Person known, PDF missing</div>
+  </div>
+  <div class="stat-card c-compliance">
+    <div class="s-label"><span class="material-icons-round" style="font-size:13px">verified</span> Compliance</div>
+    <div class="s-value" id="sCompliance">—</div>
+    <div class="progress-wrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Filters -->
+<div class="filters" id="filtersBar" style="display:none">
+  <button class="filter-btn active" onclick="setFilter('all',this)">All <span class="filter-count" id="fc-all">0</span></button>
+  <button class="filter-btn" onclick="setFilter('auto',this)">AUTO <span class="filter-count" id="fc-auto">0</span></button>
+  <button class="filter-btn" onclick="setFilter('review',this)">Review <span class="filter-count" id="fc-review">0</span></button>
+  <button class="filter-btn" onclick="setFilter('skip',this)">Low score <span class="filter-count" id="fc-skip">0</span></button>
+  <button class="filter-btn" onclick="setFilter('no_meta',this)">No metadata <span class="filter-count" id="fc-no_meta">0</span></button>
+  <button class="filter-btn" onclick="setFilter('no_consent',this)">No consent found <span class="filter-count" id="fc-no_consent">0</span></button>
+  <button class="filter-btn" onclick="setFilter('confirmed',this)">Confirmed <span class="filter-count" id="fc-confirmed">0</span></button>
+  <button class="filter-btn" onclick="setFilter('rejected',this)">Rejected <span class="filter-count" id="fc-rejected">0</span></button>
+</div>
+
+<!-- Table -->
+<div class="table-section">
+  <div id="tableContainer">
+    <div class="state-box">
+      <div class="icon"><span class="material-icons-round" style="font-size:40px">manage_search</span></div>
+      <p>Select a project and run matching to get started.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  let allMatches = [];
+  let currentFilter = 'all';
+  let currentProjectId = '';
+
+  // ── Combobox ──────────────────────────────────────────────────────────────
+  let _allProjects = [];
+  let _selectedProjectId = '';
+  let _highlightIndex = -1;
+
+  const trigger  = document.getElementById('comboTrigger');
+  const search   = document.getElementById('comboSearch');
+  const dropdown = document.getElementById('comboList');
+
+  function comboOpen() {
+    trigger.setAttribute('aria-expanded', 'true');
+    dropdown.classList.add('open');
+    search.readOnly = false;
+    search.focus();
+    _highlightIndex = -1;
+    comboRender(_allProjects);
+  }
+
+  function comboClose() {
+    trigger.setAttribute('aria-expanded', 'false');
+    dropdown.classList.remove('open');
+    search.readOnly = true;
+    // Restore selected label or placeholder
+    if (_selectedProjectId) {
+      const p = _allProjects.find(p => p.project_id === _selectedProjectId);
+      search.value = p ? p.name.replace(/\+/g, ' ') : '';
+    } else {
+      search.value = '';
+    }
+  }
+
+  function comboToggle() {
+    trigger.getAttribute('aria-expanded') === 'true' ? comboClose() : comboOpen();
+  }
+
+  function comboRender(projects) {
+    const q = search.value.trim().toLowerCase();
+    const filtered = q
+      ? projects.filter(p =>
+          p.name.toLowerCase().includes(q) ||
+          (p.project_id && p.project_id.includes(q)))
+      : projects;
+
+    if (!filtered.length) {
+      dropdown.innerHTML = `<div class="combo-empty">No projects match "${search.value}"</div>`;
+      return;
+    }
+
+    dropdown.innerHTML = filtered.map((p, i) => `
+      <div class="combo-option${p.project_id === _selectedProjectId ? ' active-option' : ''}"
+           role="option" id="combo-opt-${p.project_id}"
+           aria-selected="${p.project_id === _selectedProjectId}"
+           data-id="${p.project_id}"
+           onmousedown="comboSelect('${p.project_id}')">
+        <span class="combo-option-id">${p.project_id}</span>
+        <span class="combo-option-name">${p.name.replace(/\+/g, ' ')}</span>
+      </div>`).join('');
+  }
+
+  function comboSelect(pid) {
+    _selectedProjectId = pid;
+    const p = _allProjects.find(p => p.project_id === pid);
+    search.value = p ? p.name.replace(/\+/g, ' ') : pid;
+    comboClose();
+    loadMatches();
+  }
+
+  trigger.addEventListener('mousedown', e => {
+    if (e.target === search && trigger.getAttribute('aria-expanded') === 'true') return;
+    e.preventDefault();
+    comboToggle();
+  });
+
+  search.addEventListener('input', () => comboRender(_allProjects));
+
+  search.addEventListener('keydown', e => {
+    const opts = dropdown.querySelectorAll('.combo-option');
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      _highlightIndex = Math.min(_highlightIndex + 1, opts.length - 1);
+      opts.forEach((o, i) => o.classList.toggle('aria-focused', i === _highlightIndex));
+      if (opts[_highlightIndex]) opts[_highlightIndex].scrollIntoView({block:'nearest'});
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      _highlightIndex = Math.max(_highlightIndex - 1, 0);
+      opts.forEach((o, i) => o.classList.toggle('aria-focused', i === _highlightIndex));
+      if (opts[_highlightIndex]) opts[_highlightIndex].scrollIntoView({block:'nearest'});
+    } else if (e.key === 'Enter' && _highlightIndex >= 0 && opts[_highlightIndex]) {
+      comboSelect(opts[_highlightIndex].dataset.id);
+    } else if (e.key === 'Escape') {
+      comboClose();
+    }
+  });
+
+  document.addEventListener('mousedown', e => {
+    if (!trigger.contains(e.target) && !dropdown.contains(e.target)) comboClose();
+  });
+
+  // ── Init ─────────────────────────────────────────────────────────────────
+  async function init() {
+    const res = await fetch('/api/projects');
+    const projects = await res.json();
+    _allProjects = projects.filter(p => p.project_id);
+    search.placeholder = 'Select a project…';
+    dropdown.innerHTML = '';
+    document.getElementById('loadBtn').disabled = false;
+  }
+
+  // ── Progress bar ──────────────────────────────────────────────────────────
+  let _progressTimer = null;
+  const _stages = [
+    { pct: 12, label: 'Fetching images…' },
+    { pct: 28, label: 'Fetching consent PDFs…' },
+    { pct: 48, label: 'Parsing PDF contents…' },
+    { pct: 68, label: 'Scoring image–PDF pairs…' },
+    { pct: 84, label: 'Ranking candidates…' },
+    { pct: 91, label: 'Finalising results…' },
+  ];
+
+  function startProgress() {
+    let i = 0;
+    function step() {
+      if (i >= _stages.length) return;
+      const s = _stages[i++];
+      setProgress(s.pct, s.label);
+      const delay = i === 1 ? 300 : i < 4 ? 900 : 1400;
+      _progressTimer = setTimeout(step, delay);
+    }
+    setProgress(0, 'Starting…');
+    _progressTimer = setTimeout(step, 120);
+  }
+
+  function setProgress(pct, label) {
+    const fill  = document.getElementById('mpFill');
+    const lbl   = document.getElementById('mpLabel');
+    const pctEl = document.getElementById('mpPct');
+    if (fill)  fill.style.width  = pct + '%';
+    if (lbl)   lbl.textContent   = label;
+    if (pctEl) pctEl.textContent = pct + '%';
+  }
+
+  function completeProgress(cb) {
+    clearTimeout(_progressTimer);
+    setProgress(100, 'Done.');
+    setTimeout(cb, 350);
+  }
+
+  // ── Load ─────────────────────────────────────────────────────────────────
+  async function loadMatches() {
+    const pid = _selectedProjectId;
+    if (!pid) return;
+    currentProjectId = pid;
+
+    document.getElementById('tableContainer').innerHTML =
+      `<div class="state-box">
+        <div class="match-progress">
+          <div class="mp-label">
+            <span class="mp-label-text" id="mpLabel">Fetching images…</span>
+            <span class="mp-pct" id="mpPct">0%</span>
+          </div>
+          <div class="mp-track"><div class="mp-fill" id="mpFill"></div></div>
+        </div>
+      </div>`;
+      startProgress();
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('filtersBar').style.display = 'none';
+    document.getElementById('bulkBtn').style.display = 'none';
+    document.getElementById('noConsentNotice').style.display = 'none';
+
+    try {
+      const res = await fetch(`/api/matches/${pid}`);
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Error'); }
+      const data = await res.json();
+      completeProgress(() => {
+        allMatches = data.matches;
+        renderStats(data.stats);
+        renderFilterCounts(allMatches);
+        renderTable(allMatches);
+        document.getElementById('dashboard').style.display = 'grid';
+        document.getElementById('filtersBar').style.display = 'flex';
+        if (data.stats.auto_ready > 0)
+          document.getElementById('bulkBtn').style.display = 'inline-flex';
+        if (data.stats.no_consent_found > 0) {
+          document.getElementById('noConsentMsg').textContent =
+            `${data.stats.no_consent_found} images have a known person but no matching consent PDF could be found in Canto. ` +
+            `${data.stats.no_person_meta} images have no "Person Shown" metadata — these cannot be matched without manual input.`;
+          document.getElementById('noConsentNotice').style.display = 'flex';
+        }
+      });
+    } catch(e) {
+      clearTimeout(_progressTimer);
+      document.getElementById('tableContainer').innerHTML =
+        `<div class="state-box"><div class="icon"><span class="material-icons-round" style="font-size:36px">error_outline</span></div><p>${e.message}</p></div>`;
+    }
+  }
+
+  // ── Stats ─────────────────────────────────────────────────────────────────
+  function renderStats(s) {
+    document.getElementById('sTotal').textContent      = s.total;
+    document.getElementById('sConfirmed').textContent  = s.confirmed;
+    document.getElementById('sAuto').textContent       = s.auto_ready;
+    document.getElementById('sReview').textContent     = s.needs_review;
+    document.getElementById('sNoMeta').textContent     = s.no_person_meta;
+    document.getElementById('sNoConsent').textContent  = s.no_consent_found;
+    document.getElementById('sCompliance').textContent = s.compliance + '%';
+    document.getElementById('progressFill').style.width = s.compliance + '%';
+  }
+
+  function updateStatsFromLocal() {
+    const t = allMatches.length;
+    const confirmed    = allMatches.filter(m => m.decision === 'confirmed').length;
+    const auto_ready   = allMatches.filter(m => m.best_match?.tier === 'auto' && !m.decision).length;
+    const needs_review = allMatches.filter(m => m.best_match?.tier === 'review' && !m.decision).length;
+    const no_meta      = allMatches.filter(m => !m.person_shown).length;
+    const no_consent   = allMatches.filter(m => !m.best_match || m.best_match.score === 0).length;
+    const compliance   = t ? (confirmed/t*100).toFixed(1) : 0;
+    renderStats({total:t, confirmed, auto_ready, needs_review,
+                 no_person_meta:no_meta, no_consent_found:no_consent, compliance});
+    renderFilterCounts(allMatches);
+  }
+
+  // ── Filter counts ────────────────────────────────────────────────────────
+  function renderFilterCounts(matches) {
+    const counts = {
+      all:         matches.length,
+      auto:        matches.filter(m => m.best_match?.tier === 'auto' && !m.decision).length,
+      review:      matches.filter(m => m.best_match?.tier === 'review' && !m.decision).length,
+      skip:        matches.filter(m => m.best_match?.tier === 'skip' && !m.decision).length,
+      no_meta:     matches.filter(m => !m.person_shown).length,
+      no_consent:  matches.filter(m => !m.best_match || m.best_match.score === 0).length,
+      confirmed:   matches.filter(m => m.decision === 'confirmed').length,
+      rejected:    matches.filter(m => m.decision === 'rejected').length,
+    };
+    for (const [k, v] of Object.entries(counts)) {
+      const el = document.getElementById(`fc-${k}`);
+      if (el) el.textContent = v;
+    }
+  }
+
+  function setFilter(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderTable(allMatches);
+  }
+
+  function filtered(matches) {
+    if (currentFilter === 'all')        return matches;
+    if (currentFilter === 'confirmed')  return matches.filter(m => m.decision === 'confirmed');
+    if (currentFilter === 'rejected')   return matches.filter(m => m.decision === 'rejected');
+    if (currentFilter === 'no_meta')    return matches.filter(m => !m.person_shown);
+    if (currentFilter === 'no_consent') return matches.filter(m => !m.best_match || m.best_match.score === 0);
+    if (currentFilter === 'skip')       return matches.filter(m => m.best_match?.tier === 'skip' && !m.decision);
+    return matches.filter(m => m.best_match?.tier === currentFilter && !m.decision);
+  }
+
+  // ── Table ─────────────────────────────────────────────────────────────────
+  function renderTable(matches) {
+    const rows = filtered(matches);
+    if (!rows.length) {
+      document.getElementById('tableContainer').innerHTML =
+        '<div class="table-wrap"><div class="state-box"><div class="icon"><span class="material-icons-round" style="font-size:36px">search_off</span></div><p>No matches for this filter.</p></div></div>';
+      return;
+    }
+    document.getElementById('tableContainer').innerHTML = `
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th></th>
+              <th>Photo</th>
+              <th>Person shown</th>
+              <th>Project</th>
+              <th>Consent PDF</th>
+              <th>Score</th>
+              <th>Signals</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>${rows.map(rowHtml).join('')}</tbody>
+        </table>
+      </div>`;
+  }
+
+  function rowHtml(m) {
+    const bm = m.best_match;
+
+    const thumb = m.image_thumb
+      ? `<img class="thumb" src="${m.image_thumb}" loading="lazy" alt="" />`
+      : `<div class="thumb-ph"><span class="material-icons-round">image</span></div>`;
+
+    const tierPill = bm
+      ? `<span class="tier-pill tier-${bm.tier}">${bm.tier}</span>`
+      : `<span class="tier-pill tier-none">None</span>`;
+
+    const scoreHtml = bm
+      ? `<span class="score-val">${bm.score.toFixed(0)}%</span>`
+      : `<span style="color:var(--fp-secondary-50)">—</span>`;
+
+    const signalsHtml = bm?.signals
+      ? Object.entries(bm.signals).map(([k,v]) =>
+          `<div>${k[0].toUpperCase()}=${v.score.toFixed(0)}</div>`).join('')
+      : '—';
+
+    const pdfCell = bm
+      ? `<a class="pdf-link" href="${bm.pdf_url}" target="_blank" title="${bm.pdf_name}">${bm.pdf_name}</a>`
+      : `<span style="color:var(--fp-secondary-50); font-size:var(--fs-xs)">No consent found</span>`;
+
+    const personHtml = m.person_shown
+      ? `<div class="cell-primary" title="${m.person_shown}">${m.person_shown}</div>`
+      : `<div style="color:var(--fp-secondary-50); font-size:var(--fs-xs); font-style:italic">No metadata</div>`;
+
+    const confirmActive = m.decision === 'confirmed' ? 'active' : '';
+    const rejectActive  = m.decision === 'rejected'  ? 'active' : '';
+
+    return `
+      <tr class="${m.decision || ''}" id="row-${m.image_id}">
+        <td>${thumb}</td>
+        <td>
+          <div class="cell-primary" title="${m.image_name}">${truncate(m.image_name, 28)}</div>
+        </td>
+        <td>
+          ${personHtml}
+          <div class="cell-secondary">${[m.city, m.country].filter(Boolean).join(', ') || ''}</div>
+        </td>
+        <td style="color:var(--fp-secondary-75); font-weight:700">${m.project_id}</td>
+        <td>${pdfCell}</td>
+        <td>${scoreHtml}&nbsp;${tierPill}</td>
+        <td><div class="signal-grid">${signalsHtml}</div></td>
+        <td>
+          <div class="action-row">
+            ${bm ? `
+            <button class="btn-confirm ${confirmActive}" onclick="decide('${m.image_id}','${bm.pdf_id}','confirmed')">
+              <span class="material-icons-round" style="font-size:12px">check</span>
+            </button>
+            <button class="btn-reject ${rejectActive}" onclick="decide('${m.image_id}','${bm.pdf_id}','rejected')">
+              <span class="material-icons-round" style="font-size:12px">close</span>
+            </button>
+            ` : ''}
+            <button class="btn-detail" onclick="openDetail('${m.image_id}')">
+              <span class="material-icons-round" style="font-size:12px">open_in_new</span>
+            </button>
+          </div>
+        </td>
+      </tr>`;
+  }
+
+  // ── Decisions ─────────────────────────────────────────────────────────────
+  async function decide(imageId, pdfId, action) {
+    const res = await fetch('/api/decision', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({image_id: imageId, pdf_id: pdfId, action}),
+    });
+    const data = await res.json();
+
+    const m = allMatches.find(x => x.image_id === imageId);
+    if (m) { m.decision = action; m.decided_pdf_id = pdfId; }
+
+    const row = document.getElementById(`row-${imageId}`);
+    if (row) {
+      row.className = action;
+      row.querySelectorAll('.btn-confirm').forEach(b => b.classList.toggle('active', action==='confirmed'));
+      row.querySelectorAll('.btn-reject').forEach(b => b.classList.toggle('active', action==='rejected'));
+    }
+
+    showToast(
+      action === 'confirmed'
+        ? (data.linked_in_canto ? 'Confirmed and linked in Canto' : 'Confirmed (Canto link failed — check API)')
+        : 'Rejected',
+      action === 'confirmed' ? 'success' : 'error'
+    );
+    updateStatsFromLocal();
+  }
+
+  async function bulkConfirm() {
+    const res = await fetch(`/api/decision/bulk-confirm?project_id=${currentProjectId}`, {method:'POST'});
+    const data = await res.json();
+    allMatches.forEach(m => {
+      if (m.best_match?.tier === 'auto' && !m.decision) {
+        m.decision = 'confirmed';
+        m.decided_pdf_id = m.best_match.pdf_id;
+      }
+    });
+    renderTable(allMatches);
+    updateStatsFromLocal();
+    showToast(`${data.confirmed} matches confirmed`, 'success');
+    document.getElementById('bulkBtn').style.display = 'none';
+  }
+
+  // ── Detail modal ──────────────────────────────────────────────────────────
+  function openDetail(imageId) {
+    const m = allMatches.find(x => x.image_id === imageId);
+    if (!m) return;
+
+    const candidatesHtml = (m.candidates || []).map(c => {
+      const scoreColor = c.score >= 85 ? 'var(--fp-success)' : c.score >= 60 ? 'var(--fp-warning)' : 'var(--fp-secondary-50)';
+      return `
+        <div class="candidate">
+          <div class="c-score" style="color:${scoreColor}">${c.score.toFixed(0)}%</div>
+          <div class="c-info">
+            <div class="c-name">${c.pdf_name}</div>
+            <div class="c-sigs">
+              ${Object.entries(c.signals||{}).map(([k,v])=>`${k}: ${v.score.toFixed(0)} — ${v.detail}`).join('&nbsp;&nbsp;·&nbsp;&nbsp;')}
+            </div>
+          </div>
+          <div class="c-actions">
+            <a href="${c.pdf_url}" target="_blank" class="btn-detail" style="text-decoration:none">View PDF</a>
+            <button class="btn-confirm" onclick="decide('${m.image_id}','${c.pdf_id}','confirmed');closeModal()">Confirm</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    document.getElementById('modalBody').innerHTML = `
+      <div class="modal-title">${m.image_name}</div>
+      ${m.image_thumb ? `<img class="modal-img" src="${m.image_thumb}" alt="" />` : ''}
+      <div class="meta-row">
+        <div class="meta-item"><div class="m-key">Person shown</div><div class="m-val">${m.person_shown || '—'}</div></div>
+        <div class="meta-item"><div class="m-key">Location</div><div class="m-val">${[m.city,m.country].filter(Boolean).join(', ')||'—'}</div></div>
+        <div class="meta-item"><div class="m-key">Project</div><div class="m-val">${m.project_id}</div></div>
+        <div class="meta-item"><div class="m-key">Decision</div><div class="m-val">${m.decision || 'Unreviewed'}</div></div>
+      </div>
+      <div class="section-label">Top consent candidates</div>
+      ${candidatesHtml || '<p style="color:var(--fp-secondary-75); font-size:var(--fs-sm)">No candidates found.</p>'}
+    `;
+    document.getElementById('modalOverlay').classList.add('open');
+  }
+
+  function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+  function closeModalOutside(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+
+  // ── Toast ──────────────────────────────────────────────────────────────────
+  function showToast(msg, type='') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function truncate(str, n) { return str.length > n ? str.slice(0, n) + '…' : str; }
+
+  init();
+</script>
+</body>
+</html>

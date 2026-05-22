@@ -1,0 +1,132 @@
+/* ============================================================
+   Fairpicture Design System — Foundations
+   Source: backend/theme/static_src/tailwind.config.js + styles.css
+   ============================================================ */
+
+/* ---------- Webfonts ---------- */
+@font-face {
+    font-family: 'GT Cinetype';
+    src: url('./fonts/GT-Cinetype-Regular.woff2') format('woff2'),
+         url('./fonts/GT-Cinetype-Regular.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'GT Cinetype';
+    src: url('./fonts/GT-Cinetype-Bold.woff2') format('woff2'),
+         url('./fonts/GT-Cinetype-Bold.woff') format('woff');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'GT Cinetype Mono';
+    src: url('./fonts/GT-Cinetype-Mono.woff2') format('woff2'),
+         url('./fonts/GT-Cinetype-Mono.woff') format('woff');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    /* ---------- Brand colors (canonical) ---------- */
+    --fp-primary:        #D0343A;   /* Fairpicture red — single accent everywhere */
+    --fp-primary-hover:  #952227;   /* Pressed/hover state for primary */
+    --fp-light-primary:  #FAEAEB;   /* Tinted primary background (alerts, hovers) */
+
+    /* Neutral / "secondary" scale — warm taupe-grey, NOT cool blue-grey */
+    --fp-secondary-100:  #776E64;   /* Body text on light bg / strong borders */
+    --fp-secondary-75:   #99928B;
+    --fp-secondary-50:   #BBB6B1;
+    --fp-secondary-25:   #DDDBD8;
+    --fp-secondary-20:   #EEEDEB;   /* Soft subbackground */
+    --fp-secondary-15:   #FAFAF9;   /* Page wash / very soft fill */
+    --fp-secondary-bg:   #EEEDEC;   /* Default page bg behind cards */
+
+    /* Ink */
+    --fp-darkgrey:        #333333;  /* Primary body text */
+    --fp-darkgrey-hover:  #0D0D0D;
+    --fp-white:           #FFFFFF;
+    --fp-black:           #000000;
+
+    /* Semantic colors */
+    --fp-error:    #D85252;
+    --fp-success:  #588464;
+    --fp-info:     #214F91;
+    --fp-warning:  #E3AC3C;
+
+    /* ---------- Semantic foreground / background aliases ---------- */
+    --fg-1:        var(--fp-darkgrey);       /* Primary text */
+    --fg-2:        var(--fp-secondary-100);  /* Secondary text */
+    --fg-3:        var(--fp-secondary-75);   /* Tertiary text / placeholder */
+    --fg-faint:    var(--fp-secondary-50);   /* Disabled / faint */
+    --fg-accent:   var(--fp-primary);        /* Links, accents */
+
+    --bg-page:     var(--fp-white);
+    --bg-soft:     var(--fp-secondary-15);
+    --bg-muted:    var(--fp-secondary-20);
+    --bg-tint:     var(--fp-light-primary);  /* Primary-tinted surface */
+    --bg-inverse:  var(--fp-darkgrey);
+
+    --border-1:    var(--fp-primary);        /* Branded divider (header/menu) */
+    --border-2:    var(--fp-secondary-100);  /* Form input border */
+    --border-3:    var(--fp-secondary-25);   /* Subtle divider */
+
+    /* ---------- Typography ---------- */
+    --font-sans: 'GT Cinetype', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'GT Cinetype Mono', ui-monospace, monospace;
+
+    --fs-xs:   0.75rem;    --lh-xs:   1.25rem;
+    --fs-sm:   0.875rem;   --lh-sm:   1.375rem;
+    --fs-base: 1rem;       --lh-base: 1.5rem;
+    --fs-lg:   1.125rem;   --lh-lg:   1.625rem;
+    --fs-xl:   1.25rem;    --lh-xl:   1.75rem;
+    --fs-2xl:  1.5rem;     --lh-2xl:  2rem;
+    --fs-3xl:  2rem;       --lh-3xl:  2.5rem;
+    --fs-4xl:  2.5rem;     --lh-4xl:  3rem;
+
+    /* ---------- Radius / shadow / spacing ---------- */
+    --radius-sm: 4px;       /* default for inputs, buttons */
+    --radius-md: 8px;       /* popovers, image cards */
+    --radius-lg: 12px;      /* large containers */
+    --radius-pill: 9999px;
+
+    --shadow-input: 0 0 4px var(--fp-primary);              /* focus halo */
+    --shadow-card:  0 0 4px rgba(208, 52, 58, 0.25);        /* gentle red glow */
+    --shadow-pop:   0 4px 26px rgba(208, 52, 58, 0.25);     /* popups, leaflet */
+}
+
+/* ---------- Base typography ---------- */
+html, body {
+    font-family: var(--font-sans);
+    color: var(--fg-1);
+    font-size: var(--fs-base);
+    line-height: var(--lh-base);
+    background: var(--bg-page);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, .h1 { font-size: var(--fs-4xl); line-height: var(--lh-4xl); font-weight: 700; }
+h2, .h2 { font-size: var(--fs-3xl); line-height: var(--lh-3xl); font-weight: 700; }
+h3, .h3 { font-size: var(--fs-2xl); line-height: var(--lh-2xl); font-weight: 700; }
+h4, .h4 { font-size: var(--fs-lg);  line-height: var(--lh-lg);  font-weight: 700; }
+h5, .h5 { font-size: var(--fs-base);line-height: var(--lh-base);font-weight: 700; }
+h6, .h6 { font-size: var(--fs-sm);  line-height: var(--lh-sm);  font-weight: 700; }
+
+p  { font-size: var(--fs-base); line-height: var(--lh-base); }
+small, .caption { font-size: var(--fs-xs); color: #666; }
+code, .mono { font-family: var(--font-mono); }
+
+a {
+    color: var(--fg-accent);
+    transition: color .15s ease, text-decoration-color .15s ease;
+}
+a:hover, a:focus {
+    color: var(--fp-primary-hover);
+    text-decoration: underline;
+}
+
+::selection { background: rgba(153, 146, 139, 0.27); color: var(--fp-primary-hover); }
