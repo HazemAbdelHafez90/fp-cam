@@ -45,6 +45,26 @@ def test_login_page_is_public(client):
     assert "password" in response.text.lower()
 
 
+def test_static_app_shell_redirects_without_session(client):
+    response = client.get("/static/index.html", follow_redirects=False)
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/login"
+
+
+def test_login_stylesheet_is_public(client):
+    response = client.get("/static/colors_and_type.css")
+
+    assert response.status_code == 200
+
+
+def test_static_font_encoded_traversal_redirects_without_session(client):
+    response = client.get("/static/fonts/%2e%2e/index.html", follow_redirects=False)
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/login"
+
+
 def test_wrong_password_is_rejected(client):
     response = client.post("/login", data={"password": "wrong-password"}, follow_redirects=False)
 
@@ -96,6 +116,16 @@ def test_logout_clears_cookie(client):
     assert "cam_session" in login.cookies
 
     response = client.get("/logout", cookies=login.cookies, follow_redirects=False)
+
+    assert response.status_code == 303
+    assert response.headers["location"] == "/login"
+    set_cookie = response.headers.get("set-cookie", "")
+    assert "cam_session=" in set_cookie
+    assert "Max-Age=0" in set_cookie or "expires=" in set_cookie.lower()
+
+
+def test_logout_clears_cookie_without_session(client):
+    response = client.get("/logout", follow_redirects=False)
 
     assert response.status_code == 303
     assert response.headers["location"] == "/login"
