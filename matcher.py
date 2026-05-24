@@ -61,13 +61,45 @@ class MatchResult:
 
 
 def _persons_from_image(image: dict) -> list[str]:
+    """
+    Parse 'Person Shown in the Image' into a clean list of names.
+
+    The field uses newlines between people, with optional age/role after
+    a comma on the same line. e.g.:
+        Mulatu Lodebo,40
+        wife Almaz Tamiru,30
+        son Chernet Mulatu,24
+
+    We split by newline first, then strip age numbers and role prefixes.
+    """
     raw = image.get("additional", {}).get("Person Shown in the Image") or ""
     if not raw:
         return []
-    parts = re.split(r",|\band\b|\bwith\b|\+", raw, flags=re.IGNORECASE)
-    # Strip role descriptions in parentheses e.g. "Christian (Priest)"
-    cleaned = [re.sub(r"\(.*?\)", "", p).strip() for p in parts]
-    return [p for p in cleaned if p]
+
+    names = []
+    for line in re.split(r"\n|;", raw):
+        line = line.strip()
+        if not line:
+            continue
+        # Remove role prefix words: "wife", "son", "daughter", "husband" etc.
+        line = re.sub(r"^\b(wife|husband|son|daughter|father|mother|brother|sister|child)\b\s*",
+                      "", line, flags=re.IGNORECASE).strip()
+        # Strip trailing age: ",40" or ", 40 years" etc.
+        line = re.sub(r",\s*\d+.*$", "", line).strip()
+        # Strip parenthetical role descriptions e.g. "Christian (Priest)"
+        line = re.sub(r"\(.*?\)", "", line).strip()
+        if line:
+            names.append(line)
+
+    # Fallback: if no newlines, try splitting on " and " or "+"
+    if not names:
+        for part in re.split(r"\band\b|\+", raw, flags=re.IGNORECASE):
+            part = re.sub(r",\s*\d+.*$", "", part).strip()
+            part = re.sub(r"\(.*?\)", "", part).strip()
+            if part:
+                names.append(part)
+
+    return names
 
 
 def _score_name(image: dict, pdf_data: dict) -> SignalScore:
@@ -79,6 +111,7 @@ def _score_name(image: dict, pdf_data: dict) -> SignalScore:
     if not pdf_names:
         return SignalScore("name", 0, WEIGHTS["name"], "no name in PDF")
 
+    # Find the best-matching (image_person, pdf_name) pair
     best, best_pair = 0.0, ("", "")
     for img_p in image_persons:
         for pdf_n in pdf_names:
@@ -86,8 +119,16 @@ def _score_name(image: dict, pdf_data: dict) -> SignalScore:
             if s > best:
                 best, best_pair = s, (img_p, pdf_n)
 
+    n_persons = len(image_persons)
     detail = f"'{best_pair[0]}' ↔ '{best_pair[1]}'"
+    if n_persons > 1:
+        detail += f" ({n_persons} people in image)"
     return SignalScore("name", best, WEIGHTS["name"], detail)
+
+
+def persons_from_image(image: dict) -> list[str]:
+    """Public wrapper — used by the API to expose parsed person list."""
+    return _persons_from_image(image)
 
 
 def _score_project(image: dict, pdf_data: dict) -> SignalScore:

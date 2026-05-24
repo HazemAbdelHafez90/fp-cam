@@ -26,6 +26,7 @@ from auth import (
 import canto_client as canto
 from pdf_parser import parse_consent_pdf
 from matcher import score_match
+import matcher
 
 load_dotenv()
 
@@ -610,6 +611,7 @@ def get_matches(project_id: str, album_id: str | None = None):
             "image_thumb":   image.get("url", {}).get("directUrlPreview", "") or image.get("url", {}).get("previewURI240", ""),
             "image_canto_url": image.get("url", {}).get("detail", ""),
             "person_shown":  img_additional.get("Person Shown in the Image") or "",
+            "persons":       matcher.persons_from_image(image),
             "country":       img_additional.get("Country") or "",
             "city":          img_additional.get("City") or "",
             "consent_linked": img_additional.get("Consent") or "",
