@@ -155,8 +155,8 @@
     }
     .hero-count { text-align: center; }
     .hero-count-num { font-size: 26px; font-weight: 700; line-height: 1; color: var(--fp-darkgrey); }
-    .hero-count-num.c-green  { color: #2a7a4b; }
-    .hero-count-num.c-orange { color: #7A5500; }
+    .hero-count-num.c-green  { color: var(--fp-green); }
+    .hero-count-num.c-orange { color: var(--fp-amber); }
     .hero-count-num.c-grey   { color: var(--fp-secondary-75); }
     .hero-count-num.c-red    { color: var(--fp-primary); }
     .hero-count-label { font-size: var(--fs-xs); color: var(--fp-secondary-75); margin-top: 4px; }
@@ -223,8 +223,8 @@
       border-radius: 3px; padding: 1px 5px; margin-left: 5px;
     }
     .cr-num { font-weight: 700; }
-    .cr-num.green  { color: #2a7a4b; }
-    .cr-num.orange { color: #7A5500; }
+    .cr-num.green  { color: var(--fp-green); }
+    .cr-num.orange { color: var(--fp-amber); }
     .cr-num.grey   { color: var(--fp-secondary-75); }
     .mini-bar-wrap { display: flex; align-items: center; gap: 8px; }
     .mini-bar { flex: 1; height: 6px; background: var(--fp-secondary-25); border-radius: 99px; overflow: hidden; }
@@ -236,9 +236,9 @@
       font-size: 10px; font-weight: 700;
       padding: 2px 8px; border-radius: 99px;
     }
-    .sb-done    { background: #EDF7F0; color: #1E4D2B; border: 1px solid #A8D5B5; }
+    .sb-done    { background: var(--fp-green-bg); color: var(--fp-green-dark); border: 1px solid var(--fp-green-border); }
     .sb-pending { background: var(--fp-secondary-15); color: var(--fp-secondary-75); border: 1px solid var(--fp-secondary-25); }
-    .sb-scanning{ background: #FFF8E6; color: #7A5500; border: 1px solid var(--fp-warning); }
+    .sb-scanning{ background: #FFF8E6; color: var(--fp-amber); border: 1px solid var(--fp-warning); }
     .sb-error   { background: #FEF0F0; color: var(--fp-error); border: 1px solid var(--fp-error); }
 
     .comp-empty {
@@ -369,7 +369,7 @@
     .cell-secondary { font-size: var(--fs-xs); color: var(--fp-secondary-75); margin-top: 2px; }
     .tier-pill { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: var(--radius-pill); text-transform: uppercase; letter-spacing: 0.04em; }
     .tier-auto     { background: var(--fp-light-primary); color: var(--fp-primary); border: 1px solid var(--fp-primary); }
-    .tier-review   { background: #FFF8E6; color: #7A5500; border: 1px solid var(--fp-warning); }
+    .tier-review   { background: #FFF8E6; color: var(--fp-amber); border: 1px solid var(--fp-warning); }
     .tier-skip     { background: var(--fp-secondary-15); color: var(--fp-secondary-75); border: 1px solid var(--fp-secondary-25); }
     .tier-none     { background: var(--fp-secondary-15); color: var(--fp-secondary-75); border: 1px solid var(--fp-secondary-25); }
     .score-val { font-weight: 700; font-size: var(--fs-base); }
@@ -428,10 +428,10 @@
     .c-info { flex: 1; min-width: 0; }
     .c-name { font-weight: 700; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px; }
     .c-signals { display: flex; flex-wrap: wrap; gap: 6px; }
-    .c-sig { display: inline-flex; align-items: center; gap: 5px; background: #EDF7F0; border: 1px solid #A8D5B5; border-radius: 99px; padding: 3px 10px; font-size: 11px; color: #1E4D2B; }
-    .c-sig-label { color: #3A7A52; }
-    .c-sig-val { font-weight: 700; color: #1E4D2B; }
-    .c-sig-detail { color: #3A7A52; }
+    .c-sig { display: inline-flex; align-items: center; gap: 5px; background: var(--fp-green-bg); border: 1px solid var(--fp-green-border); border-radius: 99px; padding: 3px 10px; font-size: 11px; color: var(--fp-green-dark); }
+    .c-sig-label { color: var(--fp-green-mid); }
+    .c-sig-val { font-weight: 700; color: var(--fp-green-dark); }
+    .c-sig-detail { color: var(--fp-green-mid); }
     .c-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
     /* Toast */
@@ -439,6 +439,48 @@
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.success { background: var(--fp-success); }
     .toast.error   { background: var(--fp-error); }
+
+    /* ── Confirm dialog (replaces native browser confirm()) ── */
+    .confirm-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(30,24,20,.45);
+      z-index: 400; align-items: center; justify-content: center;
+    }
+    .confirm-overlay.open { display: flex; }
+    .confirm-dialog {
+      background: var(--fp-white);
+      border: 1px solid var(--fp-secondary-25);
+      border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-pop);
+      width: 380px; max-width: 90vw;
+      padding: 28px 28px 20px;
+    }
+    .confirm-title {
+      font-size: var(--fs-base); font-weight: 700;
+      color: var(--fp-darkgrey); margin-bottom: 8px;
+    }
+    .confirm-body {
+      font-size: var(--fs-sm); color: var(--fp-secondary-75);
+      line-height: 1.55; margin-bottom: 24px;
+    }
+    .confirm-actions {
+      display: flex; justify-content: flex-end; gap: 8px;
+    }
+
+    /* Improved touch targets for filter/action buttons */
+    .filter-btn { min-height: 32px; }
+    .btn-confirm, .btn-reject, .btn-detail { min-height: 30px; }
+    .pg-btn { min-height: 30px; min-width: 30px; }
+
+    /* Token-based status colours */
+    :root {
+      --fp-green:        #2a7a4b;
+      --fp-green-bg:     #EDF7F0;
+      --fp-green-border: #A8D5B5;
+      --fp-green-mid:    #3A7A52;
+      --fp-green-dark:   #1E4D2B;
+      --fp-amber:        #7A5500;
+    }
   </style>
 </head>
 <body>
@@ -667,11 +709,27 @@
 
 </div><!-- /view-matching -->
 
-<!-- Modal -->
-<div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
+<!-- Detail modal -->
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true"
+     aria-labelledby="modalTitle" onclick="closeModalOutside(event)">
   <div class="modal">
-    <button class="modal-close" onclick="closeModal()">✕</button>
+    <button class="modal-close" onclick="closeModal()" aria-label="Close detail panel">
+      <span class="material-icons-round" style="font-size:16px" aria-hidden="true">close</span>
+    </button>
     <div id="modalBody"></div>
+  </div>
+</div>
+
+<!-- Confirm dialog (replaces native browser confirm()) -->
+<div class="confirm-overlay" id="confirmOverlay" role="alertdialog" aria-modal="true"
+     aria-labelledby="confirmTitle" aria-describedby="confirmBody">
+  <div class="confirm-dialog">
+    <div class="confirm-title" id="confirmTitle"></div>
+    <div class="confirm-body"  id="confirmBody"></div>
+    <div class="confirm-actions">
+      <button class="btn btn-secondary" id="confirmCancel">Cancel</button>
+      <button class="btn btn-danger"    id="confirmOk">Delete and re-scan</button>
+    </div>
   </div>
 </div>
 
@@ -999,8 +1057,47 @@
     updateScanButton(_allCompRows);
   }
 
+  // ── In-app confirm dialog ─────────────────────────────────────────────────
+  let _confirmResolve = null;
+
+  function showConfirm(title, body, okLabel = 'Confirm') {
+    return new Promise(resolve => {
+      _confirmResolve = resolve;
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmBody').textContent  = body;
+      document.getElementById('confirmOk').textContent    = okLabel;
+      const overlay = document.getElementById('confirmOverlay');
+      overlay.classList.add('open');
+      // Focus the cancel button by default (safer choice)
+      requestAnimationFrame(() => document.getElementById('confirmCancel').focus());
+    });
+  }
+
+  function _closeConfirm(result) {
+    document.getElementById('confirmOverlay').classList.remove('open');
+    if (_confirmResolve) { _confirmResolve(result); _confirmResolve = null; }
+  }
+
+  document.getElementById('confirmCancel').addEventListener('click', () => _closeConfirm(false));
+  document.getElementById('confirmOk').addEventListener('click',     () => _closeConfirm(true));
+  document.getElementById('confirmOverlay').addEventListener('keydown', e => {
+    if (e.key === 'Escape') _closeConfirm(false);
+    // Trap focus within dialog
+    if (e.key === 'Tab') {
+      const focusable = [...document.getElementById('confirmOverlay').querySelectorAll('button')];
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
+
   async function confirmRescan() {
-    if (!confirm('This will delete all cached scan data and re-scan every project. Continue?')) return;
+    const ok = await showConfirm(
+      'Delete scan data and re-scan?',
+      'This will delete all cached scan data and re-scan every project. This cannot be undone.',
+      'Delete and re-scan'
+    );
+    if (!ok) return;
     document.getElementById('btnScan').disabled = true;
     await fetch('/api/compliance/reset', {method: 'POST'});
     _liveData = {}; _allCompRows = []; _currentPage = 1;
@@ -1416,7 +1513,7 @@
       ? `<a href="${m.image_canto_url}" target="_blank" class="btn-detail" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-top:6px">
            <span class="material-icons-round" style="font-size:13px">open_in_new</span> Open in Canto</a>` : '';
     document.getElementById('modalBody').innerHTML = `
-      <div class="modal-title">${m.image_name}</div>
+      <div class="modal-title" id="modalTitle">${m.image_name}</div>
       ${m.image_thumb ? `<div><img class="modal-img" src="${m.image_thumb}" alt="" style="max-height:320px" />${cantoLink}</div>` : cantoLink}
       <div class="meta-row">
         <div class="meta-item"><div class="m-key">Person shown</div><div class="m-val">${m.person_shown || '—'}</div></div>
@@ -1426,11 +1523,36 @@
       </div>
       <div class="section-label">Top consent candidates</div>
       ${candidatesHtml || '<p style="color:var(--fp-secondary-75); font-size:var(--fs-sm)">No candidates found.</p>'}`;
-    document.getElementById('modalOverlay').classList.add('open');
+    _modalOpener = document.activeElement;
+    const overlay = document.getElementById('modalOverlay');
+    overlay.classList.add('open');
+    // Move focus into modal
+    requestAnimationFrame(() => {
+      const close = overlay.querySelector('.modal-close');
+      if (close) close.focus();
+    });
   }
 
-  function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
+  let _modalOpener = null; // element that triggered the modal, to restore focus on close
+
+  function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+    if (_modalOpener) { _modalOpener.focus(); _modalOpener = null; }
+  }
   function closeModalOutside(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
+
+  // Keyboard: Escape closes, Tab traps focus inside modal
+  document.getElementById('modalOverlay').addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); return; }
+    if (e.key === 'Tab') {
+      const modal = document.querySelector('#modalOverlay .modal');
+      const focusable = [...modal.querySelectorAll('button, a[href], [tabindex]:not([tabindex="-1"])')];
+      if (!focusable.length) return;
+      const first = focusable[0], last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    }
+  });
 
   // Toast
   function showToast(msg, type='') {
