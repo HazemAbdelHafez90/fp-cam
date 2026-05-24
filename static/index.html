@@ -163,7 +163,7 @@
 
     /* Scan controls */
     .scan-bar {
-      display: flex; align-items: center; gap: 12px;
+      display: flex; align-items: center; gap: 10px;
       margin-bottom: 16px; flex-wrap: wrap;
     }
     .scan-progress-wrap { flex: 1; min-width: 200px; }
@@ -171,9 +171,9 @@
       display: flex; justify-content: space-between;
       font-size: var(--fs-xs); color: var(--fp-secondary-75); margin-bottom: 5px;
     }
-    .scan-progress-label .sp-pct { font-weight: 700; color: var(--fp-primary); }
+    .scan-progress-label .sp-pct { font-weight: 700; color: var(--fp-primary); font-family: var(--font-mono); }
     .scan-track { height: 4px; background: var(--fp-secondary-25); border-radius: 2px; overflow: hidden; }
-    .scan-fill { height: 100%; background: var(--fp-primary); border-radius: 2px; width: 0%; transition: width .4s ease; }
+    .scan-fill { height: 100%; background: var(--fp-primary); border-radius: 2px; width: 0%; transition: width .35s cubic-bezier(0.4,0,0.2,1); }
     .scan-status { font-size: var(--fs-xs); color: var(--fp-secondary-75); }
 
     /* Projects table */
@@ -184,10 +184,14 @@
       overflow: hidden;
       box-shadow: var(--shadow-card);
     }
+    /* Responsive scroll on narrow viewports */
+    .comp-table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .comp-grid { min-width: 680px; }
+
     .comp-thead {
       display: grid;
-      grid-template-columns: 1fr 70px 70px 90px 90px 160px 110px;
-      padding: 10px 18px;
+      grid-template-columns: 1fr 68px 80px 110px 90px 150px 96px;
+      padding: 9px 18px;
       font-size: var(--fs-xs);
       font-weight: 700;
       color: var(--fp-secondary-75);
@@ -198,17 +202,18 @@
     }
     .comp-row {
       display: grid;
-      grid-template-columns: 1fr 70px 70px 90px 90px 160px 110px;
-      padding: 11px 18px;
+      grid-template-columns: 1fr 68px 80px 110px 90px 150px 96px;
+      padding: 10px 18px;
       font-size: var(--fs-sm);
       border-bottom: 1px solid var(--fp-secondary-25);
       align-items: center;
-      cursor: pointer;
       transition: background .1s;
     }
     .comp-row:last-child { border-bottom: none; }
-    .comp-row:hover { background: var(--fp-secondary-bg); }
-    .comp-row:hover .cr-name { color: var(--fp-primary); text-decoration: underline; }
+    .comp-row.clickable { cursor: pointer; }
+    .comp-row.clickable:hover { background: var(--fp-secondary-bg); }
+    .comp-row.clickable:hover .cr-name { color: var(--fp-primary); text-decoration: underline; }
+    .comp-row.clickable:focus { outline: 2px solid var(--fp-primary); outline-offset: -2px; background: var(--fp-secondary-bg); }
     .cr-name { font-weight: 700; }
     .cr-pid {
       display: inline-block; font-size: 10px; font-weight: 700;
@@ -223,8 +228,8 @@
     .cr-num.grey   { color: var(--fp-secondary-75); }
     .mini-bar-wrap { display: flex; align-items: center; gap: 8px; }
     .mini-bar { flex: 1; height: 6px; background: var(--fp-secondary-25); border-radius: 99px; overflow: hidden; }
-    .mini-fill { height: 100%; border-radius: 99px; background: var(--fp-primary); }
-    .mini-pct { font-size: var(--fs-xs); font-weight: 700; color: var(--fp-primary); min-width: 32px; text-align: right; }
+    .mini-fill { height: 100%; border-radius: 99px; background: var(--fp-primary); transition: width .4s ease; }
+    .mini-pct { font-size: var(--fs-xs); font-weight: 700; color: var(--fp-primary); min-width: 32px; text-align: right; font-family: var(--font-mono); }
 
     .status-badge {
       display: inline-flex; align-items: center; gap: 4px;
@@ -243,6 +248,27 @@
     }
     .comp-empty .icon { font-size: 36px; margin-bottom: 12px; color: var(--fp-secondary-50); }
     .comp-empty p { font-size: var(--fs-sm); }
+
+    /* Pagination */
+    .pagination {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 18px;
+      border-top: 1px solid var(--fp-secondary-25);
+      background: var(--fp-white);
+    }
+    .pagination-info { font-size: var(--fs-xs); color: var(--fp-secondary-75); }
+    .pagination-controls { display: flex; align-items: center; gap: 4px; }
+    .pg-btn {
+      font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: 700;
+      padding: 4px 10px; border-radius: var(--radius-sm);
+      border: 1px solid var(--fp-secondary-25); background: var(--fp-white);
+      color: var(--fp-secondary-75); cursor: pointer; transition: all .12s;
+      display: inline-flex; align-items: center; gap: 3px;
+    }
+    .pg-btn:hover:not(:disabled) { border-color: var(--fp-secondary-100); color: var(--fp-darkgrey); }
+    .pg-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .pg-btn.active { background: var(--fp-darkgrey); border-color: var(--fp-darkgrey); color: var(--fp-white); }
+    .pg-btn .material-icons-round { font-size: 13px; }
 
     /* ══════════════════════════════════════════════
        MATCHING VIEW  (existing per-project view)
@@ -481,6 +507,10 @@
         <span class="material-icons-round" style="font-size:15px">play_arrow</span>
         <span id="btnScanLabel">Scan pending projects</span>
       </button>
+      <button class="btn btn-danger" id="btnStop" onclick="stopScan()" style="display:none" aria-label="Stop scanning">
+        <span class="material-icons-round" style="font-size:15px">stop</span>
+        Stop
+      </button>
       <button class="btn btn-danger" id="btnRescan" onclick="confirmRescan()" title="Clear cached data and re-scan everything">
         <span class="material-icons-round" style="font-size:15px">restart_alt</span>
         Rescan all
@@ -490,26 +520,37 @@
           <span class="scan-status" id="scanStatusLabel">Scanning…</span>
           <span class="sp-pct" id="scanPct">0%</span>
         </div>
-        <div class="scan-track"><div class="scan-fill" id="scanFill"></div></div>
+        <div class="scan-track">
+          <div class="scan-fill" id="scanFill"
+               role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" aria-label="Scan progress"></div>
+        </div>
       </div>
     </div>
 
     <!-- Projects table -->
     <div class="comp-table-wrap" id="compTableWrap">
-      <div class="comp-thead">
-        <div>Project</div>
-        <div>Images</div>
-        <div>✓ Consent</div>
-        <div>⚠ Needs consent</div>
-        <div>ℹ No person</div>
-        <div>Compliance</div>
-        <div>Status</div>
-      </div>
-      <div id="compTableBody">
-        <div class="comp-empty">
-          <div class="icon"><span class="material-icons-round" style="font-size:36px">bar_chart</span></div>
-          <p>No scan data yet. Click <strong>Scan pending projects</strong> to begin.</p>
+      <div class="comp-table-scroll">
+        <div class="comp-grid">
+          <div class="comp-thead" role="row">
+            <div role="columnheader">Project</div>
+            <div role="columnheader">Images</div>
+            <div role="columnheader">Consented</div>
+            <div role="columnheader">Needs consent</div>
+            <div role="columnheader">No person</div>
+            <div role="columnheader">Compliance</div>
+            <div role="columnheader">Status</div>
+          </div>
+          <div id="compTableBody" role="rowgroup">
+            <div class="comp-empty">
+              <div class="icon"><span class="material-icons-round" style="font-size:36px">bar_chart</span></div>
+              <p>No scan data yet. Click <strong>Scan pending projects</strong> to begin.</p>
+            </div>
+          </div>
         </div>
+      </div>
+      <div class="pagination" id="compPagination" style="display:none" aria-label="Table pagination">
+        <span class="pagination-info" id="pgInfo"></span>
+        <div class="pagination-controls" id="pgControls"></div>
       </div>
     </div>
 
@@ -636,19 +677,27 @@
   // ══════════════════════════════════════════════
   // COMPLIANCE
   // ══════════════════════════════════════════════
-  let _scanRunning = false;
+  const PAGE_SIZE    = 25;
+  let _scanRunning   = false;
+  let _stopRequested = false;
+  let _allCompRows   = [];   // full sorted list for pagination
+  let _currentPage   = 1;
+  let _liveData      = {};   // folder_id → row — used for live hero during scan
 
   async function loadCompliance() {
     const res  = await fetch('/api/compliance');
     const data = await res.json();
+    // Seed _liveData from the API result
+    _liveData = {};
+    (data.projects || []).forEach(p => { if (p.folder_id) _liveData[p.folder_id] = p; });
     renderComplianceHero(data.totals || {});
-    renderComplianceTable(data.projects || []);
+    setAllCompRows(data.projects || []);
     updateScanButton(data.projects || []);
     return data;
   }
 
   function renderComplianceHero(t) {
-    const pct = t.compliance_pct || 0;
+    const pct = +(t.compliance_pct || 0);
     document.getElementById('heroScoreNum').textContent = pct.toFixed(0) + '%';
     document.getElementById('heroBarFill').style.width  = pct + '%';
     document.getElementById('heroRing').style.background =
@@ -662,71 +711,155 @@
       `${(t.with_consent||0).toLocaleString()} of ${(t.total_images||0).toLocaleString()} images have a confirmed consent PDF.`;
   }
 
-  function renderComplianceTable(projects) {
-    const body = document.getElementById('compTableBody');
-    if (!projects.length) {
+  function recomputeLiveHero() {
+    const rows = Object.values(_liveData).filter(r => r.status === 'done');
+    const total   = rows.reduce((s,r) => s + (r.total_images  || 0), 0);
+    const consent = rows.reduce((s,r) => s + (r.with_consent  || 0), 0);
+    const needs   = rows.reduce((s,r) => s + (r.needs_consent || 0), 0);
+    const nop     = rows.reduce((s,r) => s + (r.no_person     || 0), 0);
+    const noImg   = rows.filter(r => (r.total_images || 0) === 0).length;
+    renderComplianceHero({
+      total_images: total, with_consent: consent,
+      needs_consent: needs, no_person: nop, no_images: noImg,
+      compliance_pct: total ? +(consent / total * 100).toFixed(1) : 0,
+    });
+  }
+
+  /* ── Table + pagination ── */
+  function setAllCompRows(projects) {
+    _allCompRows  = projects;
+    _currentPage  = 1;
+    renderTablePage();
+  }
+
+  function renderTablePage() {
+    const body   = document.getElementById('compTableBody');
+    const pgWrap = document.getElementById('compPagination');
+
+    if (!_allCompRows.length) {
       body.innerHTML = `<div class="comp-empty">
         <div class="icon"><span class="material-icons-round" style="font-size:36px">bar_chart</span></div>
         <p>No scan data yet. Click <strong>Scan pending projects</strong> to begin.</p>
       </div>`;
+      pgWrap.style.display = 'none';
       return;
     }
-    body.innerHTML = projects.map(p => compRowHtml(p)).join('');
+
+    const total  = _allCompRows.length;
+    const pages  = Math.ceil(total / PAGE_SIZE);
+    const start  = (_currentPage - 1) * PAGE_SIZE;
+    const slice  = _allCompRows.slice(start, start + PAGE_SIZE);
+
+    body.innerHTML = slice.map(p => compRowHtml(p)).join('');
+
+    // Pagination
+    pgWrap.style.display = total > PAGE_SIZE ? 'flex' : 'none';
+    document.getElementById('pgInfo').textContent =
+      `${start + 1}–${Math.min(start + PAGE_SIZE, total)} of ${total} projects`;
+
+    const ctrl = document.getElementById('pgControls');
+    ctrl.innerHTML = '';
+
+    const prev = document.createElement('button');
+    prev.className = 'pg-btn'; prev.disabled = _currentPage === 1;
+    prev.setAttribute('aria-label', 'Previous page');
+    prev.innerHTML = '<span class="material-icons-round">chevron_left</span>';
+    prev.onclick = () => { _currentPage--; renderTablePage(); };
+    ctrl.appendChild(prev);
+
+    // Page number buttons (max 5 shown)
+    const range = pageRange(_currentPage, pages);
+    range.forEach(pg => {
+      if (pg === '…') {
+        const sep = document.createElement('span');
+        sep.textContent = '…'; sep.style.cssText = 'padding:0 4px;color:var(--fp-secondary-50);font-size:var(--fs-xs)';
+        ctrl.appendChild(sep);
+      } else {
+        const btn = document.createElement('button');
+        btn.className = 'pg-btn' + (pg === _currentPage ? ' active' : '');
+        btn.textContent = pg;
+        btn.setAttribute('aria-label', `Page ${pg}`);
+        btn.setAttribute('aria-current', pg === _currentPage ? 'page' : 'false');
+        btn.onclick = () => { _currentPage = pg; renderTablePage(); };
+        ctrl.appendChild(btn);
+      }
+    });
+
+    const next = document.createElement('button');
+    next.className = 'pg-btn'; next.disabled = _currentPage === pages;
+    next.setAttribute('aria-label', 'Next page');
+    next.innerHTML = '<span class="material-icons-round">chevron_right</span>';
+    next.onclick = () => { _currentPage++; renderTablePage(); };
+    ctrl.appendChild(next);
+  }
+
+  function pageRange(current, total) {
+    if (total <= 7) return Array.from({length: total}, (_, i) => i + 1);
+    if (current <= 4) return [1,2,3,4,5,'…',total];
+    if (current >= total - 3) return [1,'…',total-4,total-3,total-2,total-1,total];
+    return [1,'…',current-1,current,current+1,'…',total];
   }
 
   function compRowHtml(p) {
-    const total   = p.total_images || 0;
-    const pct     = total ? Math.round((p.with_consent || 0) / total * 100) : 0;
-    const name    = p.project_name || p.folder_id || '—';
-    const pid     = p.project_id   || '';
-    const fid     = p.folder_id    || '';
+    const total = p.total_images || 0;
+    const pct   = total ? Math.round((p.with_consent || 0) / total * 100) : 0;
+    const name  = p.project_name || p.folder_id || '—';
+    const pid   = p.project_id   || '';
+    const fid   = p.folder_id    || '';
 
     const statusBadge = {
-      done:     `<span class="status-badge sb-done"><span class="material-icons-round" style="font-size:10px">check</span>Done</span>`,
-      scanning: `<span class="status-badge sb-scanning">Scanning…</span>`,
-      error:    `<span class="status-badge sb-error" title="${(p.error_msg||'').replace(/'/g,"'")}">Error</span>`,
-      pending:  `<span class="status-badge sb-pending">Pending</span>`,
+      done:     `<span class="status-badge sb-done" aria-label="Scan complete"><span class="material-icons-round" style="font-size:10px" aria-hidden="true">check</span>Done</span>`,
+      scanning: `<span class="status-badge sb-scanning" aria-label="Currently scanning">Scanning…</span>`,
+      error:    `<span class="status-badge sb-error" title="${(p.error_msg||'').replace(/"/g,'&quot;')}" aria-label="Scan error">Error</span>`,
+      pending:  `<span class="status-badge sb-pending" aria-label="Not yet scanned">Pending</span>`,
     }[p.status] || `<span class="status-badge sb-pending">—</span>`;
 
-    // Only make clickable if we have a project_id to drill into
-    const clickable = pid
-      ? `onclick="openProjectMatching('${pid}', '${fid}')" style="cursor:pointer"`
-      : '';
+    const clickable = pid ? `class="comp-row clickable" tabindex="0" role="row"
+      onclick="openProjectMatching('${pid}','${fid}')"
+      onkeydown="if(event.key==='Enter'||event.key===' ')openProjectMatching('${pid}','${fid}')"
+      aria-label="Open project ${pid} matching"` : `class="comp-row" role="row"`;
 
-    return `<div class="comp-row" data-folder-id="${fid}" ${clickable}>
-      <div>
-        <span class="cr-name">${name}</span>
-        ${pid ? `<span class="cr-pid">${pid}</span>` : ''}
-      </div>
-      <div class="cr-num">${total}</div>
-      <div class="cr-num green">${p.with_consent || 0}</div>
-      <div class="cr-num orange">${p.needs_consent || 0}</div>
-      <div class="cr-num grey">${p.no_person || 0}</div>
-      <div class="mini-bar-wrap">
-        <div class="mini-bar"><div class="mini-fill" style="width:${pct}%"></div></div>
+    return `<div ${clickable} data-folder-id="${fid}">
+      <div role="cell"><span class="cr-name">${name}</span>${pid ? `<span class="cr-pid" aria-label="Project ID">${pid}</span>` : ''}</div>
+      <div role="cell" class="cr-num">${total}</div>
+      <div role="cell" class="cr-num green" aria-label="${p.with_consent||0} consented">${p.with_consent || 0}</div>
+      <div role="cell" class="cr-num orange" aria-label="${p.needs_consent||0} need consent">${p.needs_consent || 0}</div>
+      <div role="cell" class="cr-num grey" aria-label="${p.no_person||0} no person shown">${p.no_person || 0}</div>
+      <div role="cell" class="mini-bar-wrap" aria-label="${pct}% compliance">
+        <div class="mini-bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
+          <div class="mini-fill" style="width:${pct}%"></div>
+        </div>
         <span class="mini-pct">${pct}%</span>
       </div>
-      <div>${statusBadge}</div>
+      <div role="cell">${statusBadge}</div>
     </div>`;
   }
 
   function updateScanButton(projects) {
     const pending = projects.filter(p => p.status !== 'done').length;
     document.getElementById('btnScanLabel').textContent =
-      pending > 0 ? `Scan pending (${pending})` : 'Re-scan all';
+      pending > 0 ? `Scan pending (${pending})` : 'Scan all';
   }
 
+  /* ── Scan loop ── */
   async function startScan(forceAll) {
     if (_scanRunning) return;
-    _scanRunning = true;
-    document.getElementById('btnScan').disabled = true;
-    document.getElementById('btnRescan').disabled = true;
+    _scanRunning   = true;
+    _stopRequested = false;
+    document.getElementById('btnScan').style.display   = 'none';
+    document.getElementById('btnStop').style.display   = 'inline-flex';
+    document.getElementById('btnRescan').disabled      = true;
+    document.getElementById('scanProgressWrap').style.display = 'block';
 
-    // Load projects list + existing compliance
     const [projectsRes, compRes] = await Promise.all([
       fetch('/api/projects').then(r => r.json()),
       fetch('/api/compliance').then(r => r.json()),
     ]);
+
+    // Seed live data from existing done rows
+    _liveData = {};
+    (compRes.projects || []).forEach(p => { if (p.folder_id) _liveData[p.folder_id] = p; });
+    recomputeLiveHero();
 
     const doneIds = new Set(
       (compRes.projects || []).filter(p => !forceAll && p.status === 'done').map(p => p.folder_id)
@@ -735,22 +868,18 @@
 
     if (!pending.length) {
       showToast('All projects already scanned.', '');
-      _scanRunning = false;
-      document.getElementById('btnScan').disabled = false;
-      document.getElementById('btnRescan').disabled = false;
+      finishScan(false);
       return;
     }
 
-    document.getElementById('scanProgressWrap').style.display = 'block';
-
     for (let i = 0; i < pending.length; i++) {
-      const proj = pending[i];
-      const photosAlbum = (proj.albums || []).find(a => /photo/i.test(a.name));
-      const albumId = photosAlbum ? photosAlbum.id : '';
+      if (_stopRequested) break;
+
+      const proj     = pending[i];
+      const photoAlb = (proj.albums || []).find(a => /photo/i.test(a.name));
+      const albumId  = photoAlb ? photoAlb.id : '';
 
       setScanProgress(i, pending.length, proj.name || proj.id);
-
-      // Optimistically mark as scanning in the table
       updateCompRowStatus(proj.id, 'scanning');
 
       try {
@@ -763,70 +892,96 @@
             album_id:     albumId,
           }),
         });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const row = await res.json();
+
+        // Update live data + hero without extra API call
+        _liveData[proj.id] = {...row, folder_id: proj.id};
+        recomputeLiveHero();
         upsertCompRow(proj.id, row);
       } catch(e) {
-        upsertCompRow(proj.id, {folder_id: proj.id, project_name: proj.name, project_id: proj.project_id,
-                                status: 'error', error_msg: e.message});
+        const errRow = {folder_id: proj.id, project_name: proj.name,
+                        project_id: proj.project_id, status: 'error', error_msg: e.message};
+        _liveData[proj.id] = errRow;
+        upsertCompRow(proj.id, errRow);
       }
     }
 
-    setScanProgress(pending.length, pending.length, 'Complete');
-    _scanRunning = false;
-    document.getElementById('btnScan').disabled = false;
-    document.getElementById('btnRescan').disabled = false;
+    const stopped = _stopRequested;
+    setScanProgress(pending.length, pending.length, stopped ? 'Stopped' : 'Complete');
+    showToast(stopped ? 'Scan stopped' : 'Scan complete', stopped ? '' : 'success');
+    finishScan(true);
+  }
 
-    // Final reload for accurate hero totals
-    loadCompliance();
-    showToast('Scan complete', 'success');
-    setTimeout(() => { document.getElementById('scanProgressWrap').style.display = 'none'; }, 3000);
+  function stopScan() {
+    _stopRequested = true;
+    document.getElementById('scanStatusLabel').textContent = 'Stopping…';
+  }
+
+  function finishScan(reloadTable) {
+    _scanRunning = false;
+    document.getElementById('btnScan').style.display   = 'inline-flex';
+    document.getElementById('btnStop').style.display   = 'none';
+    document.getElementById('btnRescan').disabled      = false;
+    if (reloadTable) {
+      setTimeout(() => {
+        document.getElementById('scanProgressWrap').style.display = 'none';
+        loadCompliance();
+      }, 2000);
+    } else {
+      document.getElementById('btnScan').disabled = false;
+      document.getElementById('scanProgressWrap').style.display = 'none';
+    }
   }
 
   function setScanProgress(done, total, label) {
-    const pct = total ? Math.round(done / total * 100) : 0;
-    document.getElementById('scanFill').style.width = pct + '%';
-    document.getElementById('scanPct').textContent  = pct + '%';
+    const pct  = total ? Math.round(done / total * 100) : 0;
+    const fill = document.getElementById('scanFill');
+    fill.style.width = pct + '%';
+    fill.setAttribute('aria-valuenow', pct);
+    document.getElementById('scanPct').textContent = pct + '%';
     document.getElementById('scanStatusLabel').textContent =
-      done < total ? `Scanning "${truncate(label, 40)}"… (${done+1}/${total})` : 'Done';
+      done < total ? `"${truncate(label, 36)}" (${done + 1}/${total})` : label;
   }
 
   function updateCompRowStatus(folderId, status) {
     const el = document.querySelector(`.comp-row[data-folder-id="${folderId}"]`);
-    if (el) {
-      const badge = el.querySelector('.status-badge');
-      if (badge) badge.outerHTML = `<span class="status-badge sb-${status}">${status === 'scanning' ? 'Scanning…' : status}</span>`;
-    }
+    if (!el) return;
+    const badge = el.querySelector('.status-badge');
+    if (badge) badge.outerHTML = `<span class="status-badge sb-${status}">${status === 'scanning' ? 'Scanning…' : status}</span>`;
   }
 
   function upsertCompRow(folderId, row) {
+    // Update the in-memory list
+    const idx = _allCompRows.findIndex(r => r.folder_id === folderId);
+    const merged = {...row, folder_id: folderId};
+    if (idx >= 0) _allCompRows[idx] = merged;
+    else           _allCompRows.push(merged);
+
+    // If the folder is on the current page, update the DOM directly
     const el = document.querySelector(`.comp-row[data-folder-id="${folderId}"]`);
-    const html = compRowHtml({...row, folder_id: folderId});
-    if (el) {
-      el.outerHTML = html;
-    } else {
-      document.getElementById('compTableBody').insertAdjacentHTML('beforeend', html);
-    }
-    fetch('/api/compliance').then(r => r.json()).then(d => renderComplianceHero(d.totals || {}));
+    if (el) el.outerHTML = compRowHtml(merged);
+
+    updateScanButton(_allCompRows);
   }
 
   async function confirmRescan() {
     if (!confirm('This will delete all cached scan data and re-scan every project. Continue?')) return;
     document.getElementById('btnScan').disabled = true;
     await fetch('/api/compliance/reset', {method: 'POST'});
-    await loadCompliance();
+    _liveData = {}; _allCompRows = []; _currentPage = 1;
+    renderTablePage();
+    renderComplianceHero({});
+    document.getElementById('btnScan').disabled = false;
     startScan(true);
   }
 
   function openProjectMatching(projectId, folderId) {
     if (!projectId) return;
-    // Switch to matching view and pre-select project
     showView('matching');
-    // Wait for the combo to be ready then select
     const pick = () => {
       const proj = _allProjects.find(p => p.project_id === projectId);
-      if (proj) {
-        comboSelect(proj.project_id);
-      }
+      if (proj) comboSelect(proj.project_id);
     };
     if (_allProjects.length) pick();
     else setTimeout(pick, 800);
