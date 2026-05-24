@@ -432,17 +432,20 @@ def logout():
 
 @app.get("/api/projects")
 def list_projects():
-    """Return all project folders from Canto."""
+    """Return project folders that have at least one child album (i.e. contain images)."""
     tree = canto.get_folder_tree()
     projects = []
     for folder in tree:
+        children = folder.get("children", [])
+        if not children:
+            continue  # skip folders with no albums → no images
         m = re.search(r"[_](\d{3,5})[_]", folder.get("name", ""))
         pid = m.group(1) if m else None
         projects.append({
             "id": folder["id"],
             "name": folder["name"],
             "project_id": pid,
-            "albums": [{"id": c["id"], "name": c["name"]} for c in folder.get("children", [])],
+            "albums": [{"id": c["id"], "name": c["name"]} for c in children],
         })
     return projects
 
