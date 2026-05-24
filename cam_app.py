@@ -671,7 +671,7 @@ def reset_compliance():
 
 
 @app.get("/api/matches/{project_id}")
-def get_matches(project_id: str, album_id: str | None = None):
+def get_matches(project_id: str, album_id: str | None = None, docs_album_id: str | None = None):
     """Run matching for a project and return scored pairs."""
     # Refresh decisions from Supabase so confirmed state is always current
     global decisions
@@ -682,7 +682,15 @@ def get_matches(project_id: str, album_id: str | None = None):
         images = canto.get_album_images(album_id)
     else:
         images = canto.get_project_images(project_id)
-    docs   = canto.get_project_documents(project_id)
+
+    # Fetch documents: prefer direct album fetch, fall back to keyword search
+    if docs_album_id:
+        docs = canto.get_album_documents(docs_album_id)
+        # If album fetch returned nothing, fall back to keyword search
+        if not docs:
+            docs = canto.get_project_documents(project_id)
+    else:
+        docs = canto.get_project_documents(project_id)
 
     if not images:
         raise HTTPException(404, f"No images found for project {project_id}")

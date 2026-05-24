@@ -93,6 +93,25 @@ def search_assets(keyword: str, scheme: str = "", limit: int = 100, max_results:
     return results
 
 
+def get_album_documents(album_id: str) -> list[dict]:
+    """Fetch documents from a specific Canto album (e.g. the Documents_NNNN sub-album)."""
+    params = {"sortBy": "time", "sortDirection": "descending", "limit": 100, "start": 0,
+              "scheme": "document"}
+    results = []
+    while len(results) < 500:
+        resp = _request("GET", f"{BASE_URL}/api/v1/album/{album_id}", params=params)
+        if not resp.ok:
+            break
+        data = resp.json()
+        page = data.get("results", [])
+        results.extend(page)
+        total_found = data.get("found") or 0
+        if not page or len(results) >= total_found:
+            break
+        params["start"] += len(page)
+    return results
+
+
 def get_project_documents(project_id: str) -> list[dict]:
     results = search_assets(keyword=project_id, scheme="document", limit=100)
     return [r for r in results if

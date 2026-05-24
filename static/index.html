@@ -718,7 +718,7 @@
 
   function renderComplianceHero(t) {
     const pct = +(t.compliance_pct || 0);
-    document.getElementById('heroScoreNum').textContent = pct.toFixed(0) + '%';
+    document.getElementById('heroScoreNum').textContent = (pct > 0 && pct < 1 ? '<1' : pct.toFixed(0)) + '%';
     document.getElementById('heroBarFill').style.width  = pct + '%';
     document.getElementById('heroRing').style.background =
       `conic-gradient(var(--fp-primary) ${pct}%, var(--fp-secondary-25) 0%)`;
@@ -1031,8 +1031,9 @@
   // Combobox
   let _allProjects = [];
   let _selectedProjectId = '';
-  let _selectedAlbumId   = '';
-  let _highlightIndex    = -1;
+  let _selectedAlbumId     = '';
+  let _selectedDocsAlbumId = '';
+  let _highlightIndex      = -1;
 
   const trigger  = document.getElementById('comboTrigger');
   const search   = document.getElementById('comboSearch');
@@ -1075,7 +1076,9 @@
     const p = _allProjects.find(p => p.project_id === pid);
     search.value = p ? p.name.replace(/\+/g, ' ') : pid;
     const photosAlbum = p && p.albums ? p.albums.find(a => /photo/i.test(a.name)) : null;
-    _selectedAlbumId = photosAlbum ? photosAlbum.id : (p ? p.id : '');
+    const docsAlbum   = p && p.albums ? p.albums.find(a => /doc/i.test(a.name)) : null;
+    _selectedAlbumId     = photosAlbum ? photosAlbum.id : (p ? p.id : '');
+    _selectedDocsAlbumId = docsAlbum   ? docsAlbum.id   : '';
     comboClose();
     loadMatches();
   }
@@ -1193,7 +1196,10 @@
     document.getElementById('bulkBtn').style.display = 'none';
     document.getElementById('noConsentNotice').style.display = 'none';
     try {
-      const albumParam = _selectedAlbumId ? `?album_id=${encodeURIComponent(_selectedAlbumId)}` : '';
+      const params = new URLSearchParams();
+      if (_selectedAlbumId)     params.set('album_id',      _selectedAlbumId);
+      if (_selectedDocsAlbumId) params.set('docs_album_id', _selectedDocsAlbumId);
+      const albumParam = params.toString() ? '?' + params.toString() : '';
       const res = await fetch(`/api/matches/${pid}${albumParam}`);
       if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Error'); }
       const data = await res.json();
