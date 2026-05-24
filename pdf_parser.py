@@ -12,6 +12,11 @@ _FILENAME_NOISE = re.compile(
 )
 
 
+def name_from_filename(filename: str) -> str:
+    """Public alias — use this outside pdf_parser."""
+    return _name_from_filename(filename)
+
+
 def _name_from_filename(filename: str) -> str:
     """
     Attempt to infer a person's name from a consent PDF filename.

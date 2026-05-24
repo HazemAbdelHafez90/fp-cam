@@ -1128,9 +1128,10 @@
   // Combobox
   let _allProjects = [];
   let _selectedProjectId = '';
-  let _selectedAlbumId     = '';
-  let _selectedDocsAlbumId = '';
-  let _highlightIndex      = -1;
+  let _selectedAlbumId        = '';
+  let _selectedDocsAlbumId    = '';
+  let _selectedConsentAlbumId = '';
+  let _highlightIndex         = -1;
 
   const trigger  = document.getElementById('comboTrigger');
   const search   = document.getElementById('comboSearch');
@@ -1172,10 +1173,12 @@
     _selectedProjectId = pid;
     const p = _allProjects.find(p => p.project_id === pid);
     search.value = p ? p.name.replace(/\+/g, ' ') : pid;
-    const photosAlbum = p && p.albums ? p.albums.find(a => /photo/i.test(a.name)) : null;
-    const docsAlbum   = p && p.albums ? p.albums.find(a => /doc/i.test(a.name)) : null;
-    _selectedAlbumId     = photosAlbum ? photosAlbum.id : (p ? p.id : '');
-    _selectedDocsAlbumId = docsAlbum   ? docsAlbum.id   : '';
+    const photosAlbum  = p && p.albums ? p.albums.find(a => /photo/i.test(a.name)) : null;
+    const docsAlbum    = p && p.albums ? p.albums.find(a => /\bdoc/i.test(a.name) && !/consent/i.test(a.name)) : null;
+    const consentAlbum = p && p.albums ? p.albums.find(a => /consent/i.test(a.name)) : null;
+    _selectedAlbumId        = photosAlbum  ? photosAlbum.id  : (p ? p.id : '');
+    _selectedDocsAlbumId    = docsAlbum    ? docsAlbum.id    : '';
+    _selectedConsentAlbumId = consentAlbum ? consentAlbum.id : '';
     comboClose();
     loadMatches();
   }
@@ -1294,8 +1297,9 @@
     document.getElementById('noConsentNotice').style.display = 'none';
     try {
       const params = new URLSearchParams();
-      if (_selectedAlbumId)     params.set('album_id',      _selectedAlbumId);
-      if (_selectedDocsAlbumId) params.set('docs_album_id', _selectedDocsAlbumId);
+      if (_selectedAlbumId)        params.set('album_id',         _selectedAlbumId);
+      if (_selectedDocsAlbumId)    params.set('docs_album_id',    _selectedDocsAlbumId);
+      if (_selectedConsentAlbumId) params.set('consent_album_id', _selectedConsentAlbumId);
       const albumParam = params.toString() ? '?' + params.toString() : '';
       const res = await fetch(`/api/matches/${pid}${albumParam}`);
       if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Error'); }
@@ -1408,7 +1412,13 @@
     const tierPill = bm ? `<span class="tier-pill tier-${bm.tier}">${bm.tier}</span>` : `<span class="tier-pill tier-none">None</span>`;
     const scoreHtml = bm ? `<span class="score-val">${bm.score.toFixed(0)}%</span>` : `<span style="color:var(--fp-secondary-50)">—</span>`;
     const signalsHtml = bm?.signals ? Object.entries(bm.signals).map(([k,v]) => `<div>${k[0].toUpperCase()}=${v.score.toFixed(0)}</div>`).join('') : '—';
-    const pdfCell = bm ? `<a class="pdf-link" href="${bm.pdf_url}" target="_blank" title="${bm.pdf_name}">${bm.pdf_name}</a>` : `<span style="color:var(--fp-secondary-50); font-size:var(--fs-xs)">No consent found</span>`;
+    const pdfCell = bm
+      ? (bm.is_image_consent
+          ? `<span class="pdf-link" title="${bm.pdf_name}" style="cursor:default">
+               <span class="material-icons-round" style="font-size:11px;vertical-align:middle;margin-right:3px;opacity:.6">image</span>${bm.pdf_name}
+             </span>`
+          : `<a class="pdf-link" href="${bm.pdf_url}" target="_blank" title="${bm.pdf_name}">${bm.pdf_name}</a>`)
+      : `<span style="color:var(--fp-secondary-50); font-size:var(--fs-xs)">No consent found</span>`;
     const personHtml = m.person_shown ? `<div class="cell-primary" title="${m.person_shown}">${m.person_shown}</div>` : `<div style="color:var(--fp-secondary-50); font-size:var(--fs-xs); font-style:italic">No metadata</div>`;
     const confirmActive = m.decision === 'confirmed' ? 'active' : '';
     const rejectActive  = m.decision === 'rejected'  ? 'active' : '';
@@ -1504,7 +1514,7 @@
             <div class="c-signals">${sigs}</div>
           </div>
           <div class="c-actions">
-            <a href="${c.pdf_url}" target="_blank" class="btn-detail" style="text-decoration:none">View PDF</a>
+            <a href="${c.pdf_url}" target="_blank" class="btn-detail" style="text-decoration:none">${c.is_image_consent ? 'View form' : 'View PDF'}</a>
             <button class="btn-confirm" onclick="decide('${m.image_id}','${m.image_name}','${c.pdf_id}','${c.pdf_name}','confirmed');closeModal()">Confirm</button>
           </div>
         </div>`;

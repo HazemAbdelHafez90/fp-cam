@@ -26,7 +26,7 @@ from auth import (
     verify_session_token,
 )
 import canto_client as canto
-from pdf_parser import parse_consent_pdf
+from pdf_parser import parse_consent_pdf, name_from_filename
 from matcher import score_match
 import matcher
 
@@ -455,6 +455,41 @@ def list_projects():
     return projects
 
 
+def _consent_image_to_pdf_data(image: dict, project_id: str) -> dict | None:
+    """
+    Convert a scanned consent form image asset into a pdf_data-compatible dict
+    so the matcher can treat it like a parsed PDF.
+
+    Name is inferred from the image filename (e.g. 'Jafali_Nowa_consent.jpg'
+    → 'Jafali Nowa'). Images whose filenames yield no usable name are skipped.
+    """
+    filename = image.get("name", "")
+    inferred_name = name_from_filename(filename)
+    if not inferred_name:
+        return None
+
+    url_obj  = image.get("url", {})
+    detail   = url_obj.get("detail", "")
+
+    return {
+        "name":               inferred_name,
+        "name_source":        "filename",
+        "all_names":          [inferred_name],
+        "additional_names":   [],
+        "project_id":         project_id,
+        "country":            "",
+        "city":               "",
+        "production_location": "",
+        "age": "", "gender": "", "project_title": "",
+        "consent_date": "", "organisation": "", "notes": "",
+        "raw_text":           "",
+        "_id":                image.get("id", ""),
+        "_name":              filename,
+        "_url":               detail,
+        "_is_image_consent":  True,   # tells the UI to label this as "scanned form"
+    }
+
+
 @app.post("/api/test-relate")
 def test_relate(body: dict):
     """
@@ -671,8 +706,19 @@ def reset_compliance():
 
 
 @app.get("/api/matches/{project_id}")
-def get_matches(project_id: str, album_id: str | None = None, docs_album_id: str | None = None):
-    """Run matching for a project and return scored pairs."""
+def get_matches(
+    project_id: str,
+    album_id: str | None = None,
+    docs_album_id: str | None = None,
+    consent_album_id: str | None = None,
+):
+    """Run matching for a project and return scored pairs.
+
+    Consent sources (tried in order, all results merged):
+      1. docs_album_id  — direct Documents sub-album fetch (PDFs)
+      2. keyword search — fallback for PDFs not in a named album
+      3. consent_album_id — scanned consent form images (name from filename)
+    """
     # Refresh decisions from Supabase so confirmed state is always current
     global decisions
     decisions = _load_decisions()
@@ -683,24 +729,34 @@ def get_matches(project_id: str, album_id: str | None = None, docs_album_id: str
     else:
         images = canto.get_project_images(project_id)
 
-    # Fetch documents: prefer direct album fetch, fall back to keyword search
+    # ── PDF documents ─────────────────────────────────────────────────────────
     if docs_album_id:
         docs = canto.get_album_documents(docs_album_id)
-        # If album fetch returned nothing, fall back to keyword search
         if not docs:
             docs = canto.get_project_documents(project_id)
     else:
         docs = canto.get_project_documents(project_id)
 
+    # ── Scanned consent form images ───────────────────────────────────────────
+    consent_images: list[dict] = []
+    if consent_album_id:
+        raw_consent_imgs = canto.get_album_images(consent_album_id)
+        consent_images   = [d for d in
+                            (_consent_image_to_pdf_data(img, project_id) for img in raw_consent_imgs)
+                            if d is not None]
+
     if not images:
         raise HTTPException(404, f"No images found for project {project_id}")
-    if not docs:
-        raise HTTPException(404, f"No documents found for project {project_id}")
+    if not docs and not consent_images:
+        raise HTTPException(404, f"No consent documents or scanned forms found for project {project_id}")
 
-    # Parse PDFs
+    # Parse PDFs → pdf_data dicts
     pdf_data_list = [d for d in (_load_pdf_data(doc) for doc in docs
                                   if doc.get("name", "").lower().endswith(".pdf"))
                      if d is not None]
+
+    # Merge scanned consent image pseudo-dicts
+    pdf_data_list.extend(consent_images)
 
     results = []
     for image in images:
@@ -710,12 +766,13 @@ def get_matches(project_id: str, album_id: str | None = None, docs_album_id: str
         for pdf_data in pdf_data_list:
             result = score_match(image, pdf_data)
             all_candidates.append({
-                "pdf_id":    pdf_data["_id"],
-                "pdf_name":  pdf_data["_name"],
-                "pdf_url":   pdf_data["_url"],
-                "pdf_names": pdf_data.get("all_names", []),
-                "score":     round(result.overall, 1),
-                "tier":      result.tier,
+                "pdf_id":            pdf_data["_id"],
+                "pdf_name":          pdf_data["_name"],
+                "pdf_url":           pdf_data["_url"],
+                "pdf_names":         pdf_data.get("all_names", []),
+                "is_image_consent":  pdf_data.get("_is_image_consent", False),
+                "score":             round(result.overall, 1),
+                "tier":              result.tier,
                 "signals": {s.signal: {"score": round(s.score, 1), "detail": s.detail}
                             for s in result.signals},
             })
@@ -739,13 +796,14 @@ def get_matches(project_id: str, album_id: str | None = None, docs_album_id: str
             "consent_linked": img_additional.get("Consent") or "",
             "project_id":    project_id,
             "best_match": {
-                "pdf_id":   best_pdf["_id"]   if best_pdf else None,
-                "pdf_name": best_pdf["_name"] if best_pdf else None,
-                "pdf_url":  best_pdf["_url"]  if best_pdf else None,
-                "score":    round(best_result.overall, 1) if best_result else 0,
-                "tier":     best_result.tier if best_result else "skip",
-                "signals":  {s.signal: {"score": round(s.score, 1), "detail": s.detail}
-                             for s in best_result.signals} if best_result else {},
+                "pdf_id":           best_pdf["_id"]   if best_pdf else None,
+                "pdf_name":         best_pdf["_name"] if best_pdf else None,
+                "pdf_url":          best_pdf["_url"]  if best_pdf else None,
+                "is_image_consent": best_pdf.get("_is_image_consent", False) if best_pdf else False,
+                "score":            round(best_result.overall, 1) if best_result else 0,
+                "tier":             best_result.tier if best_result else "skip",
+                "signals":          {s.signal: {"score": round(s.score, 1), "detail": s.detail}
+                                     for s in best_result.signals} if best_result else {},
             } if best_pdf else None,
             "candidates":    all_candidates[:5],  # top 5
             "decision":      decision.get("action", ""),
