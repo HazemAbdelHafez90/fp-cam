@@ -3,6 +3,7 @@
 import json
 import os
 import re
+from datetime import datetime, timezone
 from pathlib import Path
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.exceptions import RequestValidationError
@@ -502,61 +503,129 @@ def debug_project(project_id: str):
     }
 
 
+_COMPLIANCE_TABLE = "project_compliance"
+
+
+def _get_confirmed_image_ids(image_ids: list) -> set:
+    """Return the set of image_ids that have a confirmed decision in Supabase."""
+    if not _sb_available() or not image_ids:
+        return set()
+    ids_param = ",".join(image_ids)
+    r = requests.get(
+        f"{_SB_URL}/rest/v1/decisions?select=image_id&action=eq.confirmed"
+        f"&image_id=in.({ids_param})",
+        headers=_sb_headers(), timeout=10,
+    )
+    if not r.ok:
+        return set()
+    return {row["image_id"] for row in r.json()}
+
+
+def _upsert_compliance_row(row: dict):
+    if not _sb_available():
+        return
+    requests.post(
+        f"{_SB_URL}/rest/v1/{_COMPLIANCE_TABLE}",
+        headers={**_sb_headers(), "Prefer": "resolution=merge-duplicates"},
+        json=row, timeout=10,
+    )
+
+
 @app.get("/api/compliance")
 def get_compliance():
-    """Global compliance overview — reads Consent field from every image in Canto."""
-    tree = canto.get_folder_tree()
+    """Read cached compliance data from Supabase project_compliance table."""
+    if not _sb_available():
+        return {"projects": [], "totals": {}, "error": "Supabase not configured"}
+    r = requests.get(
+        f"{_SB_URL}/rest/v1/{_COMPLIANCE_TABLE}?select=*&order=project_id.asc",
+        headers=_sb_headers(), timeout=10,
+    )
+    if not r.ok:
+        raise HTTPException(500, f"Supabase: {r.text}")
+    rows = r.json()
 
-    projects_out = []
-    grand_total = 0
-    grand_linked = 0
+    total_images  = sum(p.get("total_images") or 0 for p in rows)
+    with_consent  = sum(p.get("with_consent") or 0 for p in rows)
+    needs_consent = sum(p.get("needs_consent") or 0 for p in rows)
+    no_person     = sum(p.get("no_person") or 0 for p in rows)
+    no_images     = sum(1 for p in rows if (p.get("total_images") or 0) == 0)
 
-    for folder in tree:
-        m = re.search(r"[_](\d{3,5})[_]", folder.get("name", ""))
-        pid = m.group(1) if m else None
+    return {
+        "projects": rows,
+        "totals": {
+            "total_images":   total_images,
+            "with_consent":   with_consent,
+            "needs_consent":  needs_consent,
+            "no_person":      no_person,
+            "no_images":      no_images,
+            "compliance_pct": round(with_consent / total_images * 100, 1) if total_images else 0,
+        },
+    }
 
-        # Find the Photos sub-album; fall back to searching by project ID keyword
-        photos_album = next(
-            (c for c in folder.get("children", []) if re.search(r"photo", c.get("name", ""), re.I)),
-            None,
-        )
 
-        if photos_album:
-            images = canto.get_album_images(photos_album["id"])
-        elif pid:
-            images = canto.get_project_images(pid)
+@app.post("/api/compliance/scan/{folder_id}")
+def scan_project_compliance(folder_id: str, body: dict):
+    """Scan one project folder and save results to Supabase. Idempotent — safe to retry."""
+    project_name = body.get("project_name", "")
+    project_id   = body.get("project_id", "")
+    album_id     = body.get("album_id", "")
+
+    try:
+        if album_id:
+            images = canto.get_album_images(album_id)
+        elif project_id:
+            images = canto.get_project_images(project_id)
         else:
             images = []
 
-        total = len(images)
-        linked = sum(
-            1 for img in images
-            if img.get("additional", {}).get("Consent") or
-               img.get("metadata", {}).get("Consent")
-        )
+        image_ids     = [img["id"] for img in images]
+        confirmed_ids = _get_confirmed_image_ids(image_ids)
 
-        grand_total += total
-        grand_linked += linked
+        with_consent = needs_consent = no_person = 0
+        for img in images:
+            if img["id"] in confirmed_ids:
+                with_consent += 1
+            elif matcher.persons_from_image(img):
+                needs_consent += 1
+            else:
+                no_person += 1
 
-        if total > 0:
-            projects_out.append({
-                "id": folder["id"],
-                "name": folder.get("name", ""),
-                "project_id": pid,
-                "total": total,
-                "linked": linked,
-                "pct": round(linked / total * 100) if total else 0,
-            })
+        row = {
+            "folder_id":    folder_id,
+            "project_name": project_name,
+            "project_id":   project_id or "",
+            "total_images": len(images),
+            "with_consent": with_consent,
+            "needs_consent": needs_consent,
+            "no_person":    no_person,
+            "status":       "done",
+            "scanned_at":   datetime.now(timezone.utc).isoformat(),
+            "error_msg":    None,
+        }
+        _upsert_compliance_row(row)
+        return row
 
-    # Sort by compliance % ascending (worst first)
-    projects_out.sort(key=lambda p: p["pct"])
+    except Exception as e:
+        _upsert_compliance_row({
+            "folder_id":    folder_id,
+            "project_name": project_name,
+            "project_id":   project_id or "",
+            "status":       "error",
+            "error_msg":    str(e),
+        })
+        raise HTTPException(500, str(e))
 
-    return {
-        "total": grand_total,
-        "linked": grand_linked,
-        "pct": round(grand_linked / grand_total * 100) if grand_total else 0,
-        "projects": projects_out,
-    }
+
+@app.post("/api/compliance/reset")
+def reset_compliance():
+    """Delete all rows so the next scan starts from scratch."""
+    if not _sb_available():
+        raise HTTPException(503, "Supabase not configured")
+    r = requests.delete(
+        f"{_SB_URL}/rest/v1/{_COMPLIANCE_TABLE}?folder_id=neq.''",
+        headers={**_sb_headers(), "Prefer": "return=minimal"}, timeout=10,
+    )
+    return {"ok": r.ok, "status": r.status_code}
 
 
 @app.get("/api/matches/{project_id}")

@@ -31,176 +31,42 @@
       top: 0;
       z-index: 100;
     }
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
+    .logo { display: flex; align-items: center; gap: 12px; }
     .logo img { height: 20px; }
-    .logo-divider {
-      width: 1px;
-      height: 18px;
-      background: var(--fp-secondary-25);
-    }
-    .logo-product {
-      font-size: var(--fs-sm);
-      font-weight: 700;
-      color: var(--fp-darkgrey);
-      letter-spacing: 0;
-    }
-    .logo-product span {
-      color: var(--fp-primary);
-    }
+    .logo-divider { width: 1px; height: 18px; background: var(--fp-secondary-25); }
+    .logo-product { font-size: var(--fs-sm); font-weight: 700; color: var(--fp-darkgrey); }
+    .logo-product span { color: var(--fp-primary); }
 
-    /* ── Controls ── */
-    .controls {
-      background: var(--fp-white);
-      border-bottom: 1px solid var(--fp-secondary-25);
-      padding: 12px 32px;
+    /* ── Nav tabs ── */
+    .nav-tabs {
       display: flex;
       align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
+      gap: 4px;
     }
-
-    /* ── Custom combobox ── */
-    .combo-wrap {
-      position: relative;
-      min-width: 320px;
-    }
-    .combo-trigger {
+    .nav-tab {
       font-family: var(--font-sans);
-      font-size: var(--fs-sm);
-      border: 1px solid var(--fp-secondary-100);
+      font-size: var(--fs-xs);
+      font-weight: 700;
+      padding: 6px 14px;
       border-radius: var(--radius-sm);
-      padding: 0;
-      background: var(--fp-white);
-      color: var(--fp-darkgrey);
-      width: 100%;
+      border: 1px solid transparent;
       cursor: pointer;
-      transition: border-color .15s, box-shadow .15s;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: stretch;
-    }
-    .combo-trigger:focus-within {
-      border-color: var(--fp-primary);
-      box-shadow: var(--shadow-input);
-      outline: none;
-    }
-    .combo-trigger[aria-expanded="true"] {
-      border-color: var(--fp-primary);
-      border-bottom-left-radius: 0;
-      border-bottom-right-radius: 0;
-    }
-    .combo-search {
-      font-family: var(--font-sans);
-      font-size: var(--fs-sm);
-      border: none;
-      outline: none;
-      padding: 8px 10px 8px 12px;
       background: transparent;
-      color: var(--fp-darkgrey);
-      width: 100%;
-      cursor: pointer;
-    }
-    .combo-search::placeholder { color: var(--fp-secondary-50); }
-    .combo-search:focus { cursor: text; }
-    .combo-chevron {
-      display: flex;
-      align-items: center;
-      padding: 0 10px;
-      border-left: 1px solid var(--fp-secondary-25);
       color: var(--fp-secondary-75);
-      transition: color .15s, transform .15s;
-      pointer-events: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all .15s;
     }
-    .combo-trigger[aria-expanded="true"] .combo-chevron {
-      color: var(--fp-primary);
-      transform: rotate(180deg);
-    }
-    .combo-chevron svg { display: block; }
-
-    .combo-dropdown {
-      position: absolute;
-      top: 100%;
-      left: 0; right: 0;
-      background: var(--fp-white);
-      border: 1px solid var(--fp-primary);
-      border-top: none;
-      border-bottom-left-radius: var(--radius-sm);
-      border-bottom-right-radius: var(--radius-sm);
-      box-shadow: var(--shadow-pop);
-      z-index: 50;
-      max-height: 320px;
-      overflow-y: auto;
-      display: none;
-    }
-    .combo-dropdown.open { display: block; }
-
-    .combo-option {
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
-      padding: 9px 14px;
-      cursor: pointer;
-      transition: background .1s;
-      border-bottom: 1px solid var(--fp-secondary-15);
-    }
-    .combo-option:last-child { border-bottom: none; }
-    .combo-option:hover,
-    .combo-option[aria-selected="true"] {
-      background: var(--fp-secondary-15);
-    }
-    .combo-option.active-option { background: var(--fp-light-primary); }
-    .combo-option.aria-focused {
-      background: var(--fp-secondary-15);
-      outline: 1px solid var(--fp-primary);
-      outline-offset: -1px;
-    }
-    .combo-option-id {
-      font-family: var(--font-mono);
-      font-size: 11px;
-      color: var(--fp-primary);
+    .nav-tab:hover { background: var(--fp-secondary-15); color: var(--fp-darkgrey); }
+    .nav-tab.active {
       background: var(--fp-light-primary);
-      border: 1px solid rgba(208,52,58,.18);
-      border-radius: 3px;
-      padding: 1px 5px;
-      flex-shrink: 0;
-      line-height: 1.4;
+      color: var(--fp-primary);
+      border-color: rgba(208,52,58,.25);
     }
-    .combo-option-name {
-      font-size: var(--fs-sm);
-      color: var(--fp-darkgrey);
-      font-weight: 700;
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .combo-empty {
-      padding: 16px 14px;
-      font-size: var(--fs-sm);
-      color: var(--fp-secondary-75);
-      font-style: italic;
-    }
-    .combo-loading {
-      padding: 12px 14px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: var(--fs-sm);
-      color: var(--fp-secondary-75);
-    }
-    .combo-spinner {
-      width: 14px; height: 14px;
-      border: 2px solid var(--fp-secondary-25);
-      border-top-color: var(--fp-primary);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      flex-shrink: 0;
-    }
+    .nav-tab .material-icons-round { font-size: 14px; }
 
+    /* ── Buttons ── */
     .btn {
       font-family: var(--font-sans);
       font-size: var(--fs-sm);
@@ -215,579 +81,338 @@
       gap: 6px;
       white-space: nowrap;
     }
-    .btn-primary {
-      background: var(--fp-primary);
-      color: var(--fp-white);
-      border-color: var(--fp-primary);
-    }
+    .btn-primary { background: var(--fp-primary); color: var(--fp-white); border-color: var(--fp-primary); }
     .btn-primary:hover { background: var(--fp-primary-hover); border-color: var(--fp-primary-hover); }
-    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
-
-    .btn-secondary {
-      background: var(--fp-white);
-      color: var(--fp-darkgrey);
-      border-color: var(--fp-secondary-25);
-    }
+    .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .btn-secondary { background: var(--fp-white); color: var(--fp-darkgrey); border-color: var(--fp-secondary-25); }
     .btn-secondary:hover { border-color: var(--fp-secondary-100); background: var(--fp-secondary-15); }
-
-    .btn-ghost {
-      background: transparent;
-      color: var(--fp-primary);
-      border-color: var(--fp-primary);
-    }
+    .btn-ghost { background: transparent; color: var(--fp-primary); border-color: var(--fp-primary); }
     .btn-ghost:hover { background: var(--fp-light-primary); }
+    .btn-danger { background: transparent; color: var(--fp-error); border-color: var(--fp-error); }
+    .btn-danger:hover { background: rgba(216,82,82,.08); }
 
-    /* ── Dashboard ── */
-    .dashboard {
-      padding: 20px 32px 0;
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
+    /* ── Controls bar ── */
+    .controls {
+      background: var(--fp-white);
+      border-bottom: 1px solid var(--fp-secondary-25);
+      padding: 12px 32px;
+      display: flex;
+      align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
-    .stat-card {
+    /* ── Views ── */
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ══════════════════════════════════════════════
+       COMPLIANCE VIEW
+    ══════════════════════════════════════════════ */
+    .comp-page { padding: 28px 32px 48px; }
+
+    /* Hero */
+    .comp-hero {
       background: var(--fp-white);
       border: 1px solid var(--fp-secondary-25);
       border-radius: var(--radius-sm);
-      padding: 14px 16px;
-    }
-    .stat-card .s-label {
-      font-size: var(--fs-xs);
-      color: var(--fp-secondary-100);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-      margin-bottom: 6px;
-      display: flex;
+      padding: 28px 32px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
       align-items: center;
-      gap: 4px;
+      gap: 40px;
+      margin-bottom: 20px;
+      box-shadow: var(--shadow-card);
     }
-    .stat-card .s-value {
-      font-size: var(--fs-2xl);
-      font-weight: 700;
+    .hero-score-ring {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      background: conic-gradient(var(--fp-primary) 0%, var(--fp-secondary-25) 0%);
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+      flex-shrink: 0;
+    }
+    .hero-score-ring::after {
+      content: '';
+      position: absolute;
+      inset: 10px;
+      border-radius: 50%;
+      background: var(--fp-white);
+    }
+    .hero-score-num {
+      position: relative; z-index: 1;
+      font-size: 22px; font-weight: 700;
+      color: var(--fp-primary);
       line-height: 1;
     }
-    .stat-card .s-sub {
-      font-size: var(--fs-xs);
-      color: var(--fp-secondary-75);
-      margin-top: 4px;
+    .hero-bar-block {}
+    .hero-bar-title { font-size: var(--fs-base); font-weight: 700; margin-bottom: 4px; }
+    .hero-bar-sub { font-size: var(--fs-xs); color: var(--fp-secondary-75); margin-bottom: 10px; }
+    .hero-bar-track { height: 8px; background: var(--fp-secondary-25); border-radius: 99px; overflow: hidden; }
+    .hero-bar-fill { height: 100%; background: var(--fp-primary); border-radius: 99px; transition: width .6s ease; }
+    .hero-counts {
+      display: flex; gap: 28px; flex-shrink: 0;
     }
-    .stat-card.c-confirmed  .s-value { color: var(--fp-success); }
-    .stat-card.c-auto       .s-value { color: var(--fp-primary); }
-    .stat-card.c-review     .s-value { color: var(--fp-warning); }
-    .stat-card.c-missing    .s-value { color: var(--fp-secondary-75); }
-    .stat-card.c-unresolvable .s-value { color: var(--fp-error); }
-    .stat-card.c-compliance .s-value { color: var(--fp-success); }
+    .hero-count { text-align: center; }
+    .hero-count-num { font-size: 26px; font-weight: 700; line-height: 1; color: var(--fp-darkgrey); }
+    .hero-count-num.c-green  { color: #2a7a4b; }
+    .hero-count-num.c-orange { color: #7A5500; }
+    .hero-count-num.c-grey   { color: var(--fp-secondary-75); }
+    .hero-count-num.c-red    { color: var(--fp-primary); }
+    .hero-count-label { font-size: var(--fs-xs); color: var(--fp-secondary-75); margin-top: 4px; }
 
-    /* compliance card spans 2 cols */
-    .stat-card.c-compliance { grid-column: span 1; }
+    /* Scan controls */
+    .scan-bar {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .scan-progress-wrap { flex: 1; min-width: 200px; }
+    .scan-progress-label {
+      display: flex; justify-content: space-between;
+      font-size: var(--fs-xs); color: var(--fp-secondary-75); margin-bottom: 5px;
+    }
+    .scan-progress-label .sp-pct { font-weight: 700; color: var(--fp-primary); }
+    .scan-track { height: 4px; background: var(--fp-secondary-25); border-radius: 2px; overflow: hidden; }
+    .scan-fill { height: 100%; background: var(--fp-primary); border-radius: 2px; width: 0%; transition: width .4s ease; }
+    .scan-status { font-size: var(--fs-xs); color: var(--fp-secondary-75); }
 
-    /* progress bar */
-    .progress-wrap { margin-top: 8px; }
-    .progress-bar {
-      height: 4px;
-      background: var(--fp-secondary-25);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: var(--fp-success);
-      border-radius: 2px;
-      transition: width .4s ease;
-    }
-
-    /* ── Filters ── */
-    .filters {
-      padding: 14px 32px 0;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-    .filter-btn {
-      font-family: var(--font-sans);
-      font-size: var(--fs-xs);
-      font-weight: 700;
-      padding: 4px 12px;
-      border-radius: var(--radius-pill);
-      border: 1px solid var(--fp-secondary-25);
-      background: var(--fp-white);
-      cursor: pointer;
-      color: var(--fp-secondary-100);
-      transition: all .15s;
-    }
-    .filter-btn:hover { border-color: var(--fp-secondary-100); color: var(--fp-darkgrey); }
-    .filter-btn.active {
-      background: var(--fp-darkgrey);
-      border-color: var(--fp-darkgrey);
-      color: var(--fp-white);
-    }
-    .filter-count {
-      display: inline-block;
-      background: var(--fp-secondary-20);
-      border-radius: var(--radius-pill);
-      padding: 0 5px;
-      font-size: 10px;
-      margin-left: 3px;
-      color: var(--fp-secondary-100);
-    }
-    .filter-btn.active .filter-count {
-      background: rgba(255,255,255,0.2);
-      color: var(--fp-white);
-    }
-
-    /* ── Table wrap ── */
-    .table-section {
-      padding: 14px 32px 40px;
-    }
-
-    .table-wrap {
+    /* Projects table */
+    .comp-table-wrap {
       background: var(--fp-white);
       border: 1px solid var(--fp-secondary-25);
       border-radius: var(--radius-sm);
       overflow: hidden;
       box-shadow: var(--shadow-card);
     }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: var(--fs-sm);
-    }
-    thead { background: var(--fp-secondary-15); }
-    th {
-      padding: 9px 14px;
-      text-align: left;
+    .comp-thead {
+      display: grid;
+      grid-template-columns: 1fr 70px 70px 90px 90px 160px 110px;
+      padding: 10px 18px;
       font-size: var(--fs-xs);
       font-weight: 700;
-      color: var(--fp-secondary-100);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      color: var(--fp-secondary-75);
       border-bottom: 1px solid var(--fp-primary);
-      white-space: nowrap;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      background: var(--fp-secondary-15);
     }
-    td {
-      padding: 10px 14px;
+    .comp-row {
+      display: grid;
+      grid-template-columns: 1fr 70px 70px 90px 90px 160px 110px;
+      padding: 11px 18px;
+      font-size: var(--fs-sm);
       border-bottom: 1px solid var(--fp-secondary-25);
-      vertical-align: middle;
+      align-items: center;
+      cursor: pointer;
+      transition: background .1s;
     }
+    .comp-row:last-child { border-bottom: none; }
+    .comp-row:hover { background: var(--fp-secondary-bg); }
+    .comp-row:hover .cr-name { color: var(--fp-primary); text-decoration: underline; }
+    .cr-name { font-weight: 700; }
+    .cr-pid {
+      display: inline-block; font-size: 10px; font-weight: 700;
+      font-family: var(--font-mono);
+      background: var(--fp-light-primary); color: var(--fp-primary);
+      border: 1px solid rgba(208,52,58,.18);
+      border-radius: 3px; padding: 1px 5px; margin-left: 5px;
+    }
+    .cr-num { font-weight: 700; }
+    .cr-num.green  { color: #2a7a4b; }
+    .cr-num.orange { color: #7A5500; }
+    .cr-num.grey   { color: var(--fp-secondary-75); }
+    .mini-bar-wrap { display: flex; align-items: center; gap: 8px; }
+    .mini-bar { flex: 1; height: 6px; background: var(--fp-secondary-25); border-radius: 99px; overflow: hidden; }
+    .mini-fill { height: 100%; border-radius: 99px; background: var(--fp-primary); }
+    .mini-pct { font-size: var(--fs-xs); font-weight: 700; color: var(--fp-primary); min-width: 32px; text-align: right; }
+
+    .status-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: 10px; font-weight: 700;
+      padding: 2px 8px; border-radius: 99px;
+    }
+    .sb-done    { background: #EDF7F0; color: #1E4D2B; border: 1px solid #A8D5B5; }
+    .sb-pending { background: var(--fp-secondary-15); color: var(--fp-secondary-75); border: 1px solid var(--fp-secondary-25); }
+    .sb-scanning{ background: #FFF8E6; color: #7A5500; border: 1px solid var(--fp-warning); }
+    .sb-error   { background: #FEF0F0; color: var(--fp-error); border: 1px solid var(--fp-error); }
+
+    .comp-empty {
+      padding: 60px 32px;
+      text-align: center;
+      color: var(--fp-secondary-75);
+    }
+    .comp-empty .icon { font-size: 36px; margin-bottom: 12px; color: var(--fp-secondary-50); }
+    .comp-empty p { font-size: var(--fs-sm); }
+
+    /* ══════════════════════════════════════════════
+       MATCHING VIEW  (existing per-project view)
+    ══════════════════════════════════════════════ */
+
+    /* Custom combobox */
+    .combo-wrap { position: relative; min-width: 320px; }
+    .combo-trigger {
+      font-family: var(--font-sans); font-size: var(--fs-sm);
+      border: 1px solid var(--fp-secondary-100); border-radius: var(--radius-sm);
+      padding: 0; background: var(--fp-white); color: var(--fp-darkgrey);
+      width: 100%; cursor: pointer;
+      transition: border-color .15s, box-shadow .15s;
+      display: grid; grid-template-columns: 1fr auto; align-items: stretch;
+    }
+    .combo-trigger:focus-within { border-color: var(--fp-primary); box-shadow: var(--shadow-input); outline: none; }
+    .combo-trigger[aria-expanded="true"] { border-color: var(--fp-primary); border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+    .combo-search {
+      font-family: var(--font-sans); font-size: var(--fs-sm);
+      border: none; outline: none; padding: 8px 10px 8px 12px;
+      background: transparent; color: var(--fp-darkgrey); width: 100%; cursor: pointer;
+    }
+    .combo-search::placeholder { color: var(--fp-secondary-50); }
+    .combo-search:focus { cursor: text; }
+    .combo-chevron {
+      display: flex; align-items: center; padding: 0 10px;
+      border-left: 1px solid var(--fp-secondary-25);
+      color: var(--fp-secondary-75); transition: color .15s, transform .15s;
+      pointer-events: none;
+    }
+    .combo-trigger[aria-expanded="true"] .combo-chevron { color: var(--fp-primary); transform: rotate(180deg); }
+    .combo-chevron svg { display: block; }
+    .combo-dropdown {
+      position: absolute; top: 100%; left: 0; right: 0;
+      background: var(--fp-white); border: 1px solid var(--fp-primary);
+      border-top: none; border-bottom-left-radius: var(--radius-sm); border-bottom-right-radius: var(--radius-sm);
+      box-shadow: var(--shadow-pop); z-index: 50; max-height: 320px; overflow-y: auto; display: none;
+    }
+    .combo-dropdown.open { display: block; }
+    .combo-option {
+      display: flex; align-items: baseline; gap: 10px;
+      padding: 9px 14px; cursor: pointer; transition: background .1s;
+      border-bottom: 1px solid var(--fp-secondary-15);
+    }
+    .combo-option:last-child { border-bottom: none; }
+    .combo-option:hover, .combo-option[aria-selected="true"] { background: var(--fp-secondary-15); }
+    .combo-option.active-option { background: var(--fp-light-primary); }
+    .combo-option.aria-focused { background: var(--fp-secondary-15); outline: 1px solid var(--fp-primary); outline-offset: -1px; }
+    .combo-option-id {
+      font-family: var(--font-mono); font-size: 11px; color: var(--fp-primary);
+      background: var(--fp-light-primary); border: 1px solid rgba(208,52,58,.18);
+      border-radius: 3px; padding: 1px 5px; flex-shrink: 0; line-height: 1.4;
+    }
+    .combo-option-name { font-size: var(--fs-sm); color: var(--fp-darkgrey); font-weight: 700; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .combo-empty { padding: 16px 14px; font-size: var(--fs-sm); color: var(--fp-secondary-75); font-style: italic; }
+    .combo-loading { padding: 12px 14px; display: flex; align-items: center; gap: 10px; font-size: var(--fs-sm); color: var(--fp-secondary-75); }
+    .combo-spinner { width: 14px; height: 14px; border: 2px solid var(--fp-secondary-25); border-top-color: var(--fp-primary); border-radius: 50%; animation: spin .7s linear infinite; flex-shrink: 0; }
+
+    /* Dashboard stat cards */
+    .dashboard { padding: 20px 32px 0; display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+    .stat-card { background: var(--fp-white); border: 1px solid var(--fp-secondary-25); border-radius: var(--radius-sm); padding: 14px 16px; }
+    .stat-card .s-label { font-size: var(--fs-xs); color: var(--fp-secondary-100); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+    .stat-card .s-value { font-size: var(--fs-2xl); font-weight: 700; line-height: 1; }
+    .stat-card .s-sub { font-size: var(--fs-xs); color: var(--fp-secondary-75); margin-top: 4px; }
+    .stat-card.c-confirmed .s-value { color: var(--fp-success); }
+    .stat-card.c-auto      .s-value { color: var(--fp-primary); }
+    .stat-card.c-review    .s-value { color: var(--fp-warning); }
+    .stat-card.c-missing   .s-value { color: var(--fp-secondary-75); }
+    .stat-card.c-unresolvable .s-value { color: var(--fp-error); }
+    .stat-card.c-compliance   .s-value { color: var(--fp-success); }
+    .progress-wrap { margin-top: 8px; }
+    .progress-bar { height: 4px; background: var(--fp-secondary-25); border-radius: 2px; overflow: hidden; }
+    .progress-fill { height: 100%; background: var(--fp-success); border-radius: 2px; transition: width .4s ease; }
+
+    /* Filters */
+    .filters { padding: 14px 32px 0; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+    .filter-btn { font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: 700; padding: 4px 12px; border-radius: var(--radius-pill); border: 1px solid var(--fp-secondary-25); background: var(--fp-white); cursor: pointer; color: var(--fp-secondary-100); transition: all .15s; }
+    .filter-btn:hover { border-color: var(--fp-secondary-100); color: var(--fp-darkgrey); }
+    .filter-btn.active { background: var(--fp-darkgrey); border-color: var(--fp-darkgrey); color: var(--fp-white); }
+    .filter-count { display: inline-block; background: var(--fp-secondary-20); border-radius: var(--radius-pill); padding: 0 5px; font-size: 10px; margin-left: 3px; color: var(--fp-secondary-100); }
+    .filter-btn.active .filter-count { background: rgba(255,255,255,0.2); color: var(--fp-white); }
+
+    /* Table */
+    .table-section { padding: 14px 32px 40px; }
+    .table-wrap { background: var(--fp-white); border: 1px solid var(--fp-secondary-25); border-radius: var(--radius-sm); overflow: hidden; box-shadow: var(--shadow-card); }
+    table { width: 100%; border-collapse: collapse; font-size: var(--fs-sm); }
+    thead { background: var(--fp-secondary-15); }
+    th { padding: 9px 14px; text-align: left; font-size: var(--fs-xs); font-weight: 700; color: var(--fp-secondary-100); text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 1px solid var(--fp-primary); white-space: nowrap; }
+    td { padding: 10px 14px; border-bottom: 1px solid var(--fp-secondary-25); vertical-align: middle; }
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: var(--fp-secondary-15); }
-
-    /* Decision row tints — no side-stripe borders */
     tr.confirmed td { background: rgba(88,132,100,0.06); }
     tr.rejected  td { background: rgba(216,82,82,0.06); }
-
-    .thumb {
-      width: 60px; height: 42px;
-      object-fit: cover;
-      border-radius: var(--radius-sm);
-      display: block;
-      background: var(--fp-secondary-20);
-    }
-    .thumb-ph {
-      width: 60px; height: 42px;
-      border-radius: var(--radius-sm);
-      background: var(--fp-secondary-20);
-      display: flex; align-items: center; justify-content: center;
-    }
+    .thumb { width: 60px; height: 42px; object-fit: cover; border-radius: var(--radius-sm); display: block; background: var(--fp-secondary-20); }
+    .thumb-ph { width: 60px; height: 42px; border-radius: var(--radius-sm); background: var(--fp-secondary-20); display: flex; align-items: center; justify-content: center; }
     .thumb-ph span { font-size: 18px; color: var(--fp-secondary-50); }
-
     .cell-primary { font-weight: 700; color: var(--fp-darkgrey); max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .cell-secondary { font-size: var(--fs-xs); color: var(--fp-secondary-75); margin-top: 2px; }
-
-    /* Tier pills */
-    .tier-pill {
-      display: inline-block;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 2px 7px;
-      border-radius: var(--radius-pill);
-      text-transform: uppercase;
-      letter-spacing: 0.04em;
-    }
+    .tier-pill { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: var(--radius-pill); text-transform: uppercase; letter-spacing: 0.04em; }
     .tier-auto     { background: var(--fp-light-primary); color: var(--fp-primary); border: 1px solid var(--fp-primary); }
     .tier-review   { background: #FFF8E6; color: #7A5500; border: 1px solid var(--fp-warning); }
     .tier-skip     { background: var(--fp-secondary-15); color: var(--fp-secondary-75); border: 1px solid var(--fp-secondary-25); }
     .tier-none     { background: var(--fp-secondary-15); color: var(--fp-secondary-75); border: 1px solid var(--fp-secondary-25); }
-
     .score-val { font-weight: 700; font-size: var(--fs-base); }
-
     .signal-grid { font-size: 11px; color: var(--fp-secondary-75); line-height: 1.7; }
-
-    /* Action buttons */
     .action-row { display: flex; gap: 5px; align-items: center; }
     .btn-confirm, .btn-reject, .btn-detail {
-      font-family: var(--font-sans);
-      font-size: 12px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      transition: all .15s;
-      display: inline-flex; align-items: center; gap: 3px;
+      font-family: var(--font-sans); font-size: 12px; font-weight: 700;
+      padding: 4px 10px; border-radius: var(--radius-sm); cursor: pointer;
+      transition: all .15s; display: inline-flex; align-items: center; gap: 3px;
     }
-    .btn-confirm {
-      border: 1px solid var(--fp-success);
-      background: var(--fp-white);
-      color: var(--fp-success);
-    }
-    .btn-confirm:hover, .btn-confirm.active {
-      background: var(--fp-success);
-      color: var(--fp-white);
-    }
-    .btn-reject {
-      border: 1px solid var(--fp-error);
-      background: var(--fp-white);
-      color: var(--fp-error);
-    }
-    .btn-reject:hover, .btn-reject.active {
-      background: var(--fp-error);
-      color: var(--fp-white);
-    }
-    .btn-detail {
-      border: 1px solid var(--fp-secondary-25);
-      background: var(--fp-white);
-      color: var(--fp-secondary-100);
-    }
+    .btn-confirm { border: 1px solid var(--fp-success); background: var(--fp-white); color: var(--fp-success); }
+    .btn-confirm:hover, .btn-confirm.active { background: var(--fp-success); color: var(--fp-white); }
+    .btn-reject { border: 1px solid var(--fp-error); background: var(--fp-white); color: var(--fp-error); }
+    .btn-reject:hover, .btn-reject.active { background: var(--fp-error); color: var(--fp-white); }
+    .btn-detail { border: 1px solid var(--fp-secondary-25); background: var(--fp-white); color: var(--fp-secondary-100); }
     .btn-detail:hover { border-color: var(--fp-secondary-100); color: var(--fp-darkgrey); }
-
-    .pdf-link {
-      color: var(--fp-primary);
-      font-size: var(--fs-xs);
-      text-decoration: none;
-      font-weight: 700;
-      display: block;
-      max-width: 200px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+    .pdf-link { color: var(--fp-primary); font-size: var(--fs-xs); text-decoration: none; font-weight: 700; display: block; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .pdf-link:hover { color: var(--fp-primary-hover); text-decoration: underline; }
 
-    /* ── Empty / loading ── */
-    .state-box {
-      text-align: center;
-      padding: 80px 32px;
-      color: var(--fp-secondary-75);
-    }
+    /* Empty / loading */
+    .state-box { text-align: center; padding: 80px 32px; color: var(--fp-secondary-75); }
     .state-box .icon { font-size: 36px; color: var(--fp-secondary-50); margin-bottom: 12px; }
     .state-box p { font-size: var(--fs-sm); }
-
-    .spinner {
-      width: 28px; height: 28px;
-      border: 3px solid var(--fp-secondary-25);
-      border-top-color: var(--fp-primary);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-      margin: 0 auto 12px;
-    }
+    .spinner { width: 28px; height: 28px; border: 3px solid var(--fp-secondary-25); border-top-color: var(--fp-primary); border-radius: 50%; animation: spin .7s linear infinite; margin: 0 auto 12px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Match progress ── */
-    .match-progress {
-      width: 360px;
-      max-width: 90vw;
-      margin: 0 auto;
-      text-align: left;
-    }
-    .mp-label {
-      font-size: var(--fs-sm);
-      color: var(--fp-secondary-75);
-      margin-bottom: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-    }
+    /* Match progress */
+    .match-progress { width: 360px; max-width: 90vw; margin: 0 auto; text-align: left; }
+    .mp-label { font-size: var(--fs-sm); color: var(--fp-secondary-75); margin-bottom: 10px; display: flex; justify-content: space-between; align-items: baseline; }
     .mp-label-text { transition: opacity .2s; }
-    .mp-pct {
-      font-family: var(--font-mono);
-      font-size: var(--fs-xs);
-      color: var(--fp-primary);
-      font-weight: 700;
-    }
-    .mp-track {
-      height: 3px;
-      background: var(--fp-secondary-25);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .mp-fill {
-      height: 100%;
-      background: var(--fp-primary);
-      border-radius: 2px;
-      width: 0%;
-      transition: width .55s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+    .mp-pct { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--fp-primary); font-weight: 700; }
+    .mp-track { height: 3px; background: var(--fp-secondary-25); border-radius: 2px; overflow: hidden; }
+    .mp-fill { height: 100%; background: var(--fp-primary); border-radius: 2px; width: 0%; transition: width .55s cubic-bezier(0.4, 0, 0.2, 1); }
 
-    /* ── Modal ── */
-    .modal-overlay {
-      display: none;
-      position: fixed; inset: 0;
-      background: rgba(238,237,235,0.7);
-      z-index: 200;
-      align-items: center;
-      justify-content: center;
-    }
+    /* No consent callout */
+    .no-consent-notice { background: var(--fp-light-primary); border: 1px solid var(--fp-primary); border-radius: var(--radius-sm); padding: 10px 16px; font-size: var(--fs-xs); color: var(--fp-darkgrey); margin: 14px 32px 0; display: flex; align-items: center; gap: 8px; }
+    .no-consent-notice span.material-icons-round { font-size: 16px; color: var(--fp-primary); }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(238,237,235,0.7); z-index: 200; align-items: center; justify-content: center; }
     .modal-overlay.open { display: flex; }
-    .modal {
-      background: var(--fp-white);
-      border: 1px solid var(--fp-primary);
-      border-radius: var(--radius-sm);
-      box-shadow: var(--shadow-pop);
-      width: 780px;
-      max-width: 95vw;
-      max-height: 90vh;
-      overflow-y: auto;
-      padding: 28px;
-      position: relative;
-    }
-    .modal-close {
-      position: absolute; top: 16px; right: 16px;
-      background: var(--fp-secondary-15);
-      border: 1px solid var(--fp-secondary-25);
-      border-radius: var(--radius-sm);
-      width: 30px; height: 30px;
-      font-size: 14px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      color: var(--fp-secondary-100);
-      transition: background .15s;
-    }
+    .modal { background: var(--fp-white); border: 1px solid var(--fp-primary); border-radius: var(--radius-sm); box-shadow: var(--shadow-pop); width: 780px; max-width: 95vw; max-height: 90vh; overflow-y: auto; padding: 28px; position: relative; }
+    .modal-close { position: absolute; top: 16px; right: 16px; background: var(--fp-secondary-15); border: 1px solid var(--fp-secondary-25); border-radius: var(--radius-sm); width: 30px; height: 30px; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--fp-secondary-100); transition: background .15s; }
     .modal-close:hover { background: var(--fp-secondary-20); }
-
     .modal-title { font-size: var(--fs-lg); font-weight: 700; margin-bottom: 16px; }
     .modal-img { width: 100%; max-height: 240px; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 16px; box-shadow: var(--shadow-card); }
-
     .meta-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
     .meta-item .m-key { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--fp-secondary-75); }
     .meta-item .m-val { font-weight: 700; margin-top: 2px; }
-
-    .section-label {
-      font-size: var(--fs-xs); font-weight: 700;
-      text-transform: uppercase; letter-spacing: 0.05em;
-      color: var(--fp-secondary-75);
-      margin-bottom: 10px;
-      padding-bottom: 6px;
-      border-bottom: 1px solid var(--fp-secondary-25);
-    }
-
-    .candidate {
-      border: 1px solid var(--fp-secondary-25);
-      border-radius: var(--radius-sm);
-      padding: 14px 16px;
-      margin-bottom: 8px;
-      display: grid;
-      grid-template-columns: 56px 1fr auto;
-      align-items: center;
-      gap: 16px;
-      transition: border-color .15s, box-shadow .15s;
-      background: var(--fp-white);
-    }
+    .section-label { font-size: var(--fs-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--fp-secondary-75); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--fp-secondary-25); }
+    .candidate { border: 1px solid var(--fp-secondary-25); border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 8px; display: grid; grid-template-columns: 56px 1fr auto; align-items: center; gap: 16px; transition: border-color .15s, box-shadow .15s; background: var(--fp-white); }
     .candidate:hover { border-color: var(--fp-primary); box-shadow: 0 2px 8px rgba(208,52,58,.08); }
     .c-score-block { text-align: center; }
     .c-score { font-size: 22px; font-weight: 700; line-height: 1; }
-    .c-tier-pill {
-      display: inline-block; margin-top: 4px;
-      font-size: 9px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase;
-      padding: 2px 6px; border-radius: 99px;
-    }
+    .c-tier-pill { display: inline-block; margin-top: 4px; font-size: 9px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 2px 6px; border-radius: 99px; }
     .c-info { flex: 1; min-width: 0; }
     .c-name { font-weight: 700; font-size: var(--fs-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 6px; }
     .c-signals { display: flex; flex-wrap: wrap; gap: 6px; }
-    .c-sig {
-      display: inline-flex; align-items: center; gap: 5px;
-      background: #EDF7F0; border: 1px solid #A8D5B5;
-      border-radius: 99px; padding: 3px 10px;
-      font-size: 11px; color: #1E4D2B;
-    }
+    .c-sig { display: inline-flex; align-items: center; gap: 5px; background: #EDF7F0; border: 1px solid #A8D5B5; border-radius: 99px; padding: 3px 10px; font-size: 11px; color: #1E4D2B; }
     .c-sig-label { color: #3A7A52; }
     .c-sig-val { font-weight: 700; color: #1E4D2B; }
     .c-sig-detail { color: #3A7A52; }
     .c-actions { display: flex; gap: 6px; flex-shrink: 0; }
 
-    /* ── Toast ── */
-    .toast {
-      position: fixed; bottom: 24px; right: 24px;
-      background: var(--fp-darkgrey); color: var(--fp-white);
-      padding: 10px 18px; border-radius: var(--radius-sm);
-      font-size: var(--fs-xs); font-weight: 700;
-      opacity: 0; transform: translateY(8px);
-      transition: all .25s; z-index: 300;
-      pointer-events: none;
-      box-shadow: var(--shadow-pop);
-    }
+    /* Toast */
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--fp-darkgrey); color: var(--fp-white); padding: 10px 18px; border-radius: var(--radius-sm); font-size: var(--fs-xs); font-weight: 700; opacity: 0; transform: translateY(8px); transition: all .25s; z-index: 300; pointer-events: none; box-shadow: var(--shadow-pop); }
     .toast.show { opacity: 1; transform: translateY(0); }
     .toast.success { background: var(--fp-success); }
     .toast.error   { background: var(--fp-error); }
-
-    /* ── No consent callout ── */
-    .no-consent-notice {
-      background: var(--fp-light-primary);
-      border: 1px solid var(--fp-primary);
-      border-radius: var(--radius-sm);
-      padding: 10px 16px;
-      font-size: var(--fs-xs);
-      color: var(--fp-darkgrey);
-      margin: 14px 32px 0;
-      display: flex; align-items: center; gap: 8px;
-    }
-    .no-consent-notice span.material-icons-round { font-size: 16px; color: var(--fp-primary); }
-
-    /* ── Global compliance dashboard ── */
-    #globalDashboard {
-      padding: 32px 32px 0;
-    }
-    .global-hero {
-      display: flex;
-      align-items: center;
-      gap: 40px;
-      background: var(--fp-white);
-      border: 1px solid var(--fp-secondary-25);
-      border-radius: var(--radius-md);
-      padding: 28px 32px;
-      margin-bottom: 24px;
-    }
-    .global-score {
-      flex-shrink: 0;
-      text-align: center;
-    }
-    .global-score-pct {
-      font-size: 56px;
-      font-weight: 700;
-      color: var(--fp-primary);
-      line-height: 1;
-    }
-    .global-score-label {
-      font-size: var(--fs-xs);
-      color: var(--fp-secondary-75);
-      margin-top: 4px;
-    }
-    .global-bar-block {
-      flex: 1;
-    }
-    .global-bar-title {
-      font-size: var(--fs-sm);
-      font-weight: 700;
-      color: var(--fp-darkgrey);
-      margin-bottom: 8px;
-    }
-    .global-bar-sub {
-      font-size: var(--fs-xs);
-      color: var(--fp-secondary-75);
-      margin-top: 6px;
-    }
-    .global-bar-track {
-      height: 10px;
-      background: var(--fp-secondary-25);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-    .global-bar-fill {
-      height: 100%;
-      background: var(--fp-primary);
-      border-radius: 99px;
-      transition: width 0.6s ease;
-    }
-    .global-counts {
-      display: flex;
-      gap: 32px;
-      flex-shrink: 0;
-    }
-    .global-count-item {
-      text-align: center;
-    }
-    .global-count-num {
-      font-size: 28px;
-      font-weight: 700;
-      color: var(--fp-darkgrey);
-      line-height: 1;
-    }
-    .global-count-num.linked { color: var(--fp-success, #2a7a4b); }
-    .global-count-label {
-      font-size: var(--fs-xs);
-      color: var(--fp-secondary-75);
-      margin-top: 4px;
-    }
-    /* Projects breakdown table */
-    .global-table-wrap {
-      background: var(--fp-white);
-      border: 1px solid var(--fp-secondary-25);
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      margin-bottom: 32px;
-    }
-    .global-table-head {
-      display: grid;
-      grid-template-columns: 1fr 100px 100px 120px 180px;
-      padding: 10px 20px;
-      font-size: var(--fs-xs);
-      font-weight: 700;
-      color: var(--fp-secondary-75);
-      border-bottom: 1px solid var(--fp-secondary-25);
-      text-transform: uppercase;
-      letter-spacing: .04em;
-    }
-    .global-table-row {
-      display: grid;
-      grid-template-columns: 1fr 100px 100px 120px 180px;
-      padding: 11px 20px;
-      font-size: var(--fs-xs);
-      color: var(--fp-darkgrey);
-      border-bottom: 1px solid var(--fp-secondary-25);
-      align-items: center;
-      cursor: pointer;
-      transition: background .12s;
-    }
-    .global-table-row:last-child { border-bottom: none; }
-    .global-table-row:hover { background: var(--fp-secondary-bg); }
-    .global-table-row:hover .row-project-name { color: var(--fp-primary); text-decoration: underline; }
-    .row-project-name { font-weight: 600; }
-    .row-pid {
-      display: inline-block;
-      background: var(--fp-secondary-25);
-      color: var(--fp-secondary-75);
-      font-size: 10px;
-      font-weight: 700;
-      border-radius: 4px;
-      padding: 1px 5px;
-      margin-left: 6px;
-      vertical-align: middle;
-    }
-    .row-mini-bar {
-      height: 6px;
-      background: var(--fp-secondary-25);
-      border-radius: 99px;
-      overflow: hidden;
-      width: 100px;
-    }
-    .row-mini-fill {
-      height: 100%;
-      background: var(--fp-primary);
-      border-radius: 99px;
-    }
-    .row-pct {
-      font-size: var(--fs-xs);
-      font-weight: 700;
-      color: var(--fp-primary);
-      margin-left: 8px;
-    }
-    .global-loading {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      padding: 60px 0;
-      color: var(--fp-secondary-75);
-      font-size: var(--fs-sm);
-    }
-    .global-spinner {
-      width: 28px; height: 28px;
-      border: 2.5px solid var(--fp-secondary-25);
-      border-top-color: var(--fp-primary);
-      border-radius: 50%;
-      animation: spin .7s linear infinite;
-    }
   </style>
 </head>
 <body>
@@ -799,107 +424,194 @@
     <div class="logo-divider"></div>
     <span class="logo-product">CAM — <span>Consent</span> Asset Matcher</span>
   </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" id="tabCompliance" onclick="showView('compliance')">
+      <span class="material-icons-round">dashboard</span> Overview
+    </button>
+    <button class="nav-tab" id="tabMatching" onclick="showView('matching')">
+      <span class="material-icons-round">manage_search</span> Project matching
+    </button>
+  </div>
   <div style="font-size:var(--fs-xs); color:var(--fp-secondary-75);">Internal tool · Beta</div>
 </header>
 
-<!-- Controls -->
-<div class="controls">
-  <div class="combo-wrap" id="comboWrap">
-    <div class="combo-trigger" id="comboTrigger" role="combobox" aria-haspopup="listbox"
-         aria-expanded="false" aria-labelledby="comboLabel" aria-controls="comboList"
-         aria-activedescendant="" tabindex="0">
-      <input class="combo-search" id="comboSearch" type="text" autocomplete="off"
-             placeholder="Loading projects…" aria-label="Select a project"
-             readonly />
-      <span class="combo-chevron" aria-hidden="true">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </span>
+<!-- ══════════════════════════════════════════════
+     VIEW: COMPLIANCE OVERVIEW
+══════════════════════════════════════════════ -->
+<div class="view active" id="view-compliance">
+  <div class="comp-page">
+
+    <!-- Hero -->
+    <div class="comp-hero" id="compHero">
+      <div class="hero-score-ring" id="heroRing">
+        <span class="hero-score-num" id="heroScoreNum">—</span>
+      </div>
+      <div class="hero-bar-block">
+        <div class="hero-bar-title">Overall consent compliance</div>
+        <div class="hero-bar-sub" id="heroSub">Run a scan to see live data across all projects.</div>
+        <div class="hero-bar-track"><div class="hero-bar-fill" id="heroBarFill" style="width:0%"></div></div>
+      </div>
+      <div class="hero-counts">
+        <div class="hero-count">
+          <div class="hero-count-num" id="hcTotal">—</div>
+          <div class="hero-count-label">Total images</div>
+        </div>
+        <div class="hero-count">
+          <div class="hero-count-num c-green" id="hcConsent">—</div>
+          <div class="hero-count-label">With consent</div>
+        </div>
+        <div class="hero-count">
+          <div class="hero-count-num c-orange" id="hcNeeds">—</div>
+          <div class="hero-count-label">Needs consent</div>
+        </div>
+        <div class="hero-count">
+          <div class="hero-count-num c-grey" id="hcNoPerson">—</div>
+          <div class="hero-count-label">No person shown</div>
+        </div>
+        <div class="hero-count">
+          <div class="hero-count-num c-red" id="hcNoImages">—</div>
+          <div class="hero-count-label">Empty projects</div>
+        </div>
+      </div>
     </div>
-    <div class="combo-dropdown" id="comboList" role="listbox" aria-label="Projects">
-      <div class="combo-loading">
-        <div class="combo-spinner"></div>
-        Loading projects…
+
+    <!-- Scan bar -->
+    <div class="scan-bar">
+      <button class="btn btn-primary" id="btnScan" onclick="startScan(false)">
+        <span class="material-icons-round" style="font-size:15px">play_arrow</span>
+        <span id="btnScanLabel">Scan pending projects</span>
+      </button>
+      <button class="btn btn-danger" id="btnRescan" onclick="confirmRescan()" title="Clear cached data and re-scan everything">
+        <span class="material-icons-round" style="font-size:15px">restart_alt</span>
+        Rescan all
+      </button>
+      <div class="scan-progress-wrap" id="scanProgressWrap" style="display:none">
+        <div class="scan-progress-label">
+          <span class="scan-status" id="scanStatusLabel">Scanning…</span>
+          <span class="sp-pct" id="scanPct">0%</span>
+        </div>
+        <div class="scan-track"><div class="scan-fill" id="scanFill"></div></div>
+      </div>
+    </div>
+
+    <!-- Projects table -->
+    <div class="comp-table-wrap" id="compTableWrap">
+      <div class="comp-thead">
+        <div>Project</div>
+        <div>Images</div>
+        <div>✓ Consent</div>
+        <div>⚠ Needs consent</div>
+        <div>ℹ No person</div>
+        <div>Compliance</div>
+        <div>Status</div>
+      </div>
+      <div id="compTableBody">
+        <div class="comp-empty">
+          <div class="icon"><span class="material-icons-round" style="font-size:36px">bar_chart</span></div>
+          <p>No scan data yet. Click <strong>Scan pending projects</strong> to begin.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     VIEW: PROJECT MATCHING
+══════════════════════════════════════════════ -->
+<div class="view" id="view-matching">
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="combo-wrap" id="comboWrap">
+      <div class="combo-trigger" id="comboTrigger" role="combobox" aria-haspopup="listbox"
+           aria-expanded="false" aria-controls="comboList" tabindex="0">
+        <input class="combo-search" id="comboSearch" type="text" autocomplete="off"
+               placeholder="Loading projects…" aria-label="Select a project" readonly />
+        <span class="combo-chevron" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+            <path d="M3 5l4 4 4-4" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </span>
+      </div>
+      <div class="combo-dropdown" id="comboList" role="listbox" aria-label="Projects">
+        <div class="combo-loading"><div class="combo-spinner"></div> Loading projects…</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="loadBtn" disabled onclick="loadMatches()">
+      <span class="material-icons-round" style="font-size:15px">autorenew</span>
+      Run matching
+    </button>
+    <button class="btn btn-ghost" id="bulkBtn" style="display:none" onclick="bulkConfirm()">
+      <span class="material-icons-round" style="font-size:15px">task_alt</span>
+      Bulk confirm AUTO matches
+    </button>
+  </div>
+
+  <!-- No consent notice -->
+  <div class="no-consent-notice" id="noConsentNotice" style="display:none">
+    <span class="material-icons-round">info</span>
+    <span id="noConsentMsg"></span>
+  </div>
+
+  <!-- Per-project stats -->
+  <div class="dashboard" id="dashboard" style="display:none">
+    <div class="stat-card">
+      <div class="s-label"><span class="material-icons-round" style="font-size:13px">photo_library</span> Total images</div>
+      <div class="s-value" id="sTotal">—</div>
+    </div>
+    <div class="stat-card c-confirmed">
+      <div class="s-label"><span class="material-icons-round" style="font-size:13px">check_circle</span> Confirmed</div>
+      <div class="s-value" id="sConfirmed">—</div>
+    </div>
+    <div class="stat-card c-auto">
+      <div class="s-label"><span class="material-icons-round" style="font-size:13px">auto_awesome</span> AUTO ready</div>
+      <div class="s-value" id="sAuto">—</div>
+      <div class="s-sub">Score ≥ 85%</div>
+    </div>
+    <div class="stat-card c-review">
+      <div class="s-label"><span class="material-icons-round" style="font-size:13px">rate_review</span> Needs review</div>
+      <div class="s-value" id="sReview">—</div>
+      <div class="s-sub">Score 60–84%</div>
+    </div>
+    <div class="stat-card c-missing">
+      <div class="s-label"><span class="material-icons-round" style="font-size:13px">person_off</span> No person metadata</div>
+      <div class="s-value" id="sNoMeta">—</div>
+    </div>
+    <div class="stat-card c-unresolvable">
+      <div class="s-label"><span class="material-icons-round" style="font-size:13px">link_off</span> No consent found</div>
+      <div class="s-value" id="sNoConsent">—</div>
+    </div>
+    <div class="stat-card c-compliance">
+      <div class="s-label"><span class="material-icons-round" style="font-size:13px">verified</span> Compliance</div>
+      <div class="s-value" id="sCompliance">—</div>
+      <div class="progress-wrap"><div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div></div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters" id="filtersBar" style="display:none">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All <span class="filter-count" id="fc-all">0</span></button>
+    <button class="filter-btn" onclick="setFilter('auto',this)">AUTO <span class="filter-count" id="fc-auto">0</span></button>
+    <button class="filter-btn" onclick="setFilter('review',this)">Review <span class="filter-count" id="fc-review">0</span></button>
+    <button class="filter-btn" onclick="setFilter('skip',this)">Low score <span class="filter-count" id="fc-skip">0</span></button>
+    <button class="filter-btn" onclick="setFilter('no_meta',this)">No metadata <span class="filter-count" id="fc-no_meta">0</span></button>
+    <button class="filter-btn" onclick="setFilter('no_consent',this)">No consent found <span class="filter-count" id="fc-no_consent">0</span></button>
+    <button class="filter-btn" onclick="setFilter('confirmed',this)">Confirmed <span class="filter-count" id="fc-confirmed">0</span></button>
+    <button class="filter-btn" onclick="setFilter('rejected',this)">Rejected <span class="filter-count" id="fc-rejected">0</span></button>
+  </div>
+
+  <!-- Table -->
+  <div class="table-section" id="projectView">
+    <div id="tableContainer">
+      <div class="state-box">
+        <div class="icon"><span class="material-icons-round" style="font-size:40px">manage_search</span></div>
+        <p>Select a project and run matching to get started.</p>
       </div>
     </div>
   </div>
-  <button class="btn btn-primary" id="loadBtn" disabled onclick="loadMatches()">
-    <span class="material-icons-round" style="font-size:15px">autorenew</span>
-    Run matching
-  </button>
-  <button class="btn btn-ghost" id="bulkBtn" style="display:none" onclick="bulkConfirm()">
-    <span class="material-icons-round" style="font-size:15px">task_alt</span>
-    Bulk confirm AUTO matches
-  </button>
-</div>
 
-<!-- No consent notice (hidden until data loads) -->
-<div class="no-consent-notice" id="noConsentNotice" style="display:none">
-  <span class="material-icons-round">info</span>
-  <span id="noConsentMsg"></span>
-</div>
-
-<!-- Dashboard -->
-<div class="dashboard" id="dashboard" style="display:none">
-  <div class="stat-card">
-    <div class="s-label"><span class="material-icons-round" style="font-size:13px">photo_library</span> Total images</div>
-    <div class="s-value" id="sTotal">—</div>
-  </div>
-  <div class="stat-card c-confirmed">
-    <div class="s-label"><span class="material-icons-round" style="font-size:13px">check_circle</span> Confirmed</div>
-    <div class="s-value" id="sConfirmed">—</div>
-  </div>
-  <div class="stat-card c-auto">
-    <div class="s-label"><span class="material-icons-round" style="font-size:13px">auto_awesome</span> AUTO ready</div>
-    <div class="s-value" id="sAuto">—</div>
-    <div class="s-sub">Score ≥ 85%</div>
-  </div>
-  <div class="stat-card c-review">
-    <div class="s-label"><span class="material-icons-round" style="font-size:13px">rate_review</span> Needs review</div>
-    <div class="s-value" id="sReview">—</div>
-    <div class="s-sub">Score 60–84%</div>
-  </div>
-  <div class="stat-card c-missing">
-    <div class="s-label"><span class="material-icons-round" style="font-size:13px">person_off</span> No person metadata</div>
-    <div class="s-value" id="sNoMeta">—</div>
-    <div class="s-sub">Person Shown empty</div>
-  </div>
-  <div class="stat-card c-unresolvable">
-    <div class="s-label"><span class="material-icons-round" style="font-size:13px">link_off</span> No consent found</div>
-    <div class="s-value" id="sNoConsent">—</div>
-    <div class="s-sub">Person known, PDF missing</div>
-  </div>
-  <div class="stat-card c-compliance">
-    <div class="s-label"><span class="material-icons-round" style="font-size:13px">verified</span> Compliance</div>
-    <div class="s-value" id="sCompliance">—</div>
-    <div class="progress-wrap">
-      <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
-    </div>
-  </div>
-</div>
-
-<!-- Filters -->
-<div class="filters" id="filtersBar" style="display:none">
-  <button class="filter-btn active" onclick="setFilter('all',this)">All <span class="filter-count" id="fc-all">0</span></button>
-  <button class="filter-btn" onclick="setFilter('auto',this)">AUTO <span class="filter-count" id="fc-auto">0</span></button>
-  <button class="filter-btn" onclick="setFilter('review',this)">Review <span class="filter-count" id="fc-review">0</span></button>
-  <button class="filter-btn" onclick="setFilter('skip',this)">Low score <span class="filter-count" id="fc-skip">0</span></button>
-  <button class="filter-btn" onclick="setFilter('no_meta',this)">No metadata <span class="filter-count" id="fc-no_meta">0</span></button>
-  <button class="filter-btn" onclick="setFilter('no_consent',this)">No consent found <span class="filter-count" id="fc-no_consent">0</span></button>
-  <button class="filter-btn" onclick="setFilter('confirmed',this)">Confirmed <span class="filter-count" id="fc-confirmed">0</span></button>
-  <button class="filter-btn" onclick="setFilter('rejected',this)">Rejected <span class="filter-count" id="fc-rejected">0</span></button>
-</div>
-
-<!-- Table -->
-<div class="table-section" id="projectView">
-  <div id="tableContainer">
-    <div class="state-box">
-      <div class="icon"><span class="material-icons-round" style="font-size:40px">manage_search</span></div>
-      <p>Select a project and run matching to get started.</p>
-    </div>
-  </div>
-</div>
+</div><!-- /view-matching -->
 
 <!-- Modal -->
 <div class="modal-overlay" id="modalOverlay" onclick="closeModalOutside(event)">
@@ -913,15 +625,227 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  // ── View navigation ────────────────────────────────────────────────────────
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    document.getElementById('tab' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  }
+
+  // ══════════════════════════════════════════════
+  // COMPLIANCE
+  // ══════════════════════════════════════════════
+  let _scanRunning = false;
+
+  async function loadCompliance() {
+    const res  = await fetch('/api/compliance');
+    const data = await res.json();
+    renderComplianceHero(data.totals || {});
+    renderComplianceTable(data.projects || []);
+    updateScanButton(data.projects || []);
+    return data;
+  }
+
+  function renderComplianceHero(t) {
+    const pct = t.compliance_pct || 0;
+    document.getElementById('heroScoreNum').textContent = pct.toFixed(0) + '%';
+    document.getElementById('heroBarFill').style.width  = pct + '%';
+    document.getElementById('heroRing').style.background =
+      `conic-gradient(var(--fp-primary) ${pct}%, var(--fp-secondary-25) 0%)`;
+    document.getElementById('hcTotal').textContent    = (t.total_images  || 0).toLocaleString();
+    document.getElementById('hcConsent').textContent  = (t.with_consent  || 0).toLocaleString();
+    document.getElementById('hcNeeds').textContent    = (t.needs_consent || 0).toLocaleString();
+    document.getElementById('hcNoPerson').textContent = (t.no_person     || 0).toLocaleString();
+    document.getElementById('hcNoImages').textContent = (t.no_images     || 0).toLocaleString();
+    document.getElementById('heroSub').textContent    =
+      `${(t.with_consent||0).toLocaleString()} of ${(t.total_images||0).toLocaleString()} images have a confirmed consent PDF.`;
+  }
+
+  function renderComplianceTable(projects) {
+    const body = document.getElementById('compTableBody');
+    if (!projects.length) {
+      body.innerHTML = `<div class="comp-empty">
+        <div class="icon"><span class="material-icons-round" style="font-size:36px">bar_chart</span></div>
+        <p>No scan data yet. Click <strong>Scan pending projects</strong> to begin.</p>
+      </div>`;
+      return;
+    }
+    body.innerHTML = projects.map(p => compRowHtml(p)).join('');
+  }
+
+  function compRowHtml(p) {
+    const total = p.total_images || 0;
+    const pct   = total ? Math.round((p.with_consent || 0) / total * 100) : 0;
+    const statusBadge = {
+      done:     `<span class="status-badge sb-done"><span class="material-icons-round" style="font-size:10px">check</span>Done</span>`,
+      scanning: `<span class="status-badge sb-scanning">Scanning…</span>`,
+      error:    `<span class="status-badge sb-error" title="${p.error_msg||''}">Error</span>`,
+      pending:  `<span class="status-badge sb-pending">Pending</span>`,
+    }[p.status] || `<span class="status-badge sb-pending">—</span>`;
+
+    const scannedAt = p.scanned_at
+      ? new Date(p.scanned_at).toLocaleDateString('en-GB', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
+      : '—';
+
+    return `<div class="comp-row" onclick="openProjectMatching('${p.project_id}', '${p.folder_id}')">
+      <div><span class="cr-name">${p.project_name || p.folder_id}</span>${p.project_id ? `<span class="cr-pid">${p.project_id}</span>` : ''}</div>
+      <div class="cr-num">${total || 0}</div>
+      <div class="cr-num green">${p.with_consent || 0}</div>
+      <div class="cr-num orange">${p.needs_consent || 0}</div>
+      <div class="cr-num grey">${p.no_person || 0}</div>
+      <div class="mini-bar-wrap">
+        <div class="mini-bar"><div class="mini-fill" style="width:${pct}%"></div></div>
+        <span class="mini-pct">${pct}%</span>
+      </div>
+      <div>${statusBadge}</div>
+    </div>`;
+  }
+
+  function updateScanButton(projects) {
+    const pending = projects.filter(p => p.status !== 'done').length;
+    document.getElementById('btnScanLabel').textContent =
+      pending > 0 ? `Scan pending (${pending})` : 'Re-scan all';
+  }
+
+  async function startScan(forceAll) {
+    if (_scanRunning) return;
+    _scanRunning = true;
+    document.getElementById('btnScan').disabled = true;
+    document.getElementById('btnRescan').disabled = true;
+
+    // Load projects list + existing compliance
+    const [projectsRes, compRes] = await Promise.all([
+      fetch('/api/projects').then(r => r.json()),
+      fetch('/api/compliance').then(r => r.json()),
+    ]);
+
+    const doneIds = new Set(
+      (compRes.projects || []).filter(p => !forceAll && p.status === 'done').map(p => p.folder_id)
+    );
+    const pending = projectsRes.filter(p => !doneIds.has(p.id));
+
+    if (!pending.length) {
+      showToast('All projects already scanned.', '');
+      _scanRunning = false;
+      document.getElementById('btnScan').disabled = false;
+      document.getElementById('btnRescan').disabled = false;
+      return;
+    }
+
+    document.getElementById('scanProgressWrap').style.display = 'block';
+
+    for (let i = 0; i < pending.length; i++) {
+      const proj = pending[i];
+      const photosAlbum = (proj.albums || []).find(a => /photo/i.test(a.name));
+      const albumId = photosAlbum ? photosAlbum.id : '';
+
+      setScanProgress(i, pending.length, proj.name || proj.id);
+
+      // Optimistically mark as scanning in the table
+      updateCompRowStatus(proj.id, 'scanning');
+
+      try {
+        const res = await fetch(`/api/compliance/scan/${proj.id}`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            project_name: proj.name || '',
+            project_id:   proj.project_id || '',
+            album_id:     albumId,
+          }),
+        });
+        const row = await res.json();
+        upsertCompRow(proj.id, row);
+      } catch(e) {
+        upsertCompRow(proj.id, {folder_id: proj.id, project_name: proj.name, project_id: proj.project_id,
+                                status: 'error', error_msg: e.message});
+      }
+    }
+
+    setScanProgress(pending.length, pending.length, 'Complete');
+    _scanRunning = false;
+    document.getElementById('btnScan').disabled = false;
+    document.getElementById('btnRescan').disabled = false;
+
+    // Final reload for accurate hero totals
+    loadCompliance();
+    showToast('Scan complete', 'success');
+    setTimeout(() => { document.getElementById('scanProgressWrap').style.display = 'none'; }, 3000);
+  }
+
+  function setScanProgress(done, total, label) {
+    const pct = total ? Math.round(done / total * 100) : 0;
+    document.getElementById('scanFill').style.width = pct + '%';
+    document.getElementById('scanPct').textContent  = pct + '%';
+    document.getElementById('scanStatusLabel').textContent =
+      done < total ? `Scanning "${truncate(label, 40)}"… (${done+1}/${total})` : 'Done';
+  }
+
+  function updateCompRowStatus(folderId, status) {
+    // Find row by onclick attribute and update badge
+    const rows = document.querySelectorAll('.comp-row');
+    rows.forEach(row => {
+      if (row.getAttribute('onclick') && row.getAttribute('onclick').includes(folderId)) {
+        const badge = row.querySelector('.status-badge');
+        if (badge) badge.outerHTML = `<span class="status-badge sb-${status}">${status === 'scanning' ? 'Scanning…' : status}</span>`;
+      }
+    });
+  }
+
+  function upsertCompRow(folderId, row) {
+    // Re-render this specific row in the table
+    const rows = document.querySelectorAll('.comp-row');
+    let found = false;
+    rows.forEach(el => {
+      if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(folderId)) {
+        el.outerHTML = compRowHtml(row);
+        found = true;
+      }
+    });
+    if (!found) {
+      // Append new row
+      document.getElementById('compTableBody').insertAdjacentHTML('beforeend', compRowHtml(row));
+    }
+    // Update hero totals incrementally from a fresh load (lightweight)
+    fetch('/api/compliance').then(r => r.json()).then(d => renderComplianceHero(d.totals || {}));
+  }
+
+  async function confirmRescan() {
+    if (!confirm('This will delete all cached scan data and re-scan every project. Continue?')) return;
+    document.getElementById('btnScan').disabled = true;
+    await fetch('/api/compliance/reset', {method: 'POST'});
+    await loadCompliance();
+    startScan(true);
+  }
+
+  function openProjectMatching(projectId, folderId) {
+    if (!projectId) return;
+    // Switch to matching view and pre-select project
+    showView('matching');
+    // Wait for the combo to be ready then select
+    const pick = () => {
+      const proj = _allProjects.find(p => p.project_id === projectId);
+      if (proj) {
+        comboSelect(proj.project_id);
+      }
+    };
+    if (_allProjects.length) pick();
+    else setTimeout(pick, 800);
+  }
+
+  // ══════════════════════════════════════════════
+  // MATCHING (per-project)
+  // ══════════════════════════════════════════════
   let allMatches = [];
   let currentFilter = 'all';
   let currentProjectId = '';
 
-  // ── Combobox ──────────────────────────────────────────────────────────────
+  // Combobox
   let _allProjects = [];
   let _selectedProjectId = '';
-  let _selectedAlbumId   = '';   // ID of the Photos sub-album for direct fetch
-  let _highlightIndex = -1;
+  let _selectedAlbumId   = '';
+  let _highlightIndex    = -1;
 
   const trigger  = document.getElementById('comboTrigger');
   const search   = document.getElementById('comboSearch');
@@ -935,103 +859,75 @@
     _highlightIndex = -1;
     comboRender(_allProjects);
   }
-
   function comboClose() {
     trigger.setAttribute('aria-expanded', 'false');
     dropdown.classList.remove('open');
     search.readOnly = true;
-    // Restore selected label or placeholder
     if (_selectedProjectId) {
       const p = _allProjects.find(p => p.project_id === _selectedProjectId);
       search.value = p ? p.name.replace(/\+/g, ' ') : '';
-    } else {
-      search.value = '';
-    }
+    } else { search.value = ''; }
   }
-
   function comboToggle() {
     trigger.getAttribute('aria-expanded') === 'true' ? comboClose() : comboOpen();
   }
-
   function comboRender(projects) {
     const q = search.value.trim().toLowerCase();
-    const filtered = q
-      ? projects.filter(p =>
-          p.name.toLowerCase().includes(q) ||
-          (p.project_id && p.project_id.includes(q)))
-      : projects;
-
-    if (!filtered.length) {
-      dropdown.innerHTML = `<div class="combo-empty">No projects match "${search.value}"</div>`;
-      return;
-    }
-
-    dropdown.innerHTML = filtered.map((p, i) => `
+    const filtered = q ? projects.filter(p => p.name.toLowerCase().includes(q) || (p.project_id && p.project_id.includes(q))) : projects;
+    if (!filtered.length) { dropdown.innerHTML = `<div class="combo-empty">No projects match "${search.value}"</div>`; return; }
+    dropdown.innerHTML = filtered.map(p => `
       <div class="combo-option${p.project_id === _selectedProjectId ? ' active-option' : ''}"
-           role="option" id="combo-opt-${p.project_id}"
-           aria-selected="${p.project_id === _selectedProjectId}"
-           data-id="${p.project_id}"
-           onmousedown="comboSelect('${p.project_id}')">
+           role="option" aria-selected="${p.project_id === _selectedProjectId}"
+           data-id="${p.project_id}" onmousedown="comboSelect('${p.project_id}')">
         <span class="combo-option-id">${p.project_id}</span>
         <span class="combo-option-name">${p.name.replace(/\+/g, ' ')}</span>
       </div>`).join('');
   }
-
   function comboSelect(pid) {
     _selectedProjectId = pid;
     const p = _allProjects.find(p => p.project_id === pid);
     search.value = p ? p.name.replace(/\+/g, ' ') : pid;
-    // Pick the Photos sub-album for direct image fetch (most reliable)
-    const photosAlbum = p && p.albums
-      ? p.albums.find(a => /photo/i.test(a.name))
-      : null;
+    const photosAlbum = p && p.albums ? p.albums.find(a => /photo/i.test(a.name)) : null;
     _selectedAlbumId = photosAlbum ? photosAlbum.id : (p ? p.id : '');
     comboClose();
     loadMatches();
   }
-
   trigger.addEventListener('mousedown', e => {
     if (e.target === search && trigger.getAttribute('aria-expanded') === 'true') return;
-    e.preventDefault();
-    comboToggle();
+    e.preventDefault(); comboToggle();
   });
-
   search.addEventListener('input', () => comboRender(_allProjects));
-
   search.addEventListener('keydown', e => {
     const opts = dropdown.querySelectorAll('.combo-option');
     if (e.key === 'ArrowDown') {
-      e.preventDefault();
-      _highlightIndex = Math.min(_highlightIndex + 1, opts.length - 1);
+      e.preventDefault(); _highlightIndex = Math.min(_highlightIndex + 1, opts.length - 1);
       opts.forEach((o, i) => o.classList.toggle('aria-focused', i === _highlightIndex));
       if (opts[_highlightIndex]) opts[_highlightIndex].scrollIntoView({block:'nearest'});
     } else if (e.key === 'ArrowUp') {
-      e.preventDefault();
-      _highlightIndex = Math.max(_highlightIndex - 1, 0);
+      e.preventDefault(); _highlightIndex = Math.max(_highlightIndex - 1, 0);
       opts.forEach((o, i) => o.classList.toggle('aria-focused', i === _highlightIndex));
       if (opts[_highlightIndex]) opts[_highlightIndex].scrollIntoView({block:'nearest'});
     } else if (e.key === 'Enter' && _highlightIndex >= 0 && opts[_highlightIndex]) {
       comboSelect(opts[_highlightIndex].dataset.id);
-    } else if (e.key === 'Escape') {
-      comboClose();
-    }
+    } else if (e.key === 'Escape') { comboClose(); }
   });
-
   document.addEventListener('mousedown', e => {
     if (!trigger.contains(e.target) && !dropdown.contains(e.target)) comboClose();
   });
 
-  // ── Init ─────────────────────────────────────────────────────────────────
+  // Init
   async function init() {
-    const res = await fetch('/api/projects');
-    const projects = await res.json();
+    const [projects] = await Promise.all([
+      fetch('/api/projects').then(r => r.json()),
+      loadCompliance(),
+    ]);
     _allProjects = projects.filter(p => p.project_id);
     search.placeholder = 'Select a project…';
     dropdown.innerHTML = '';
     document.getElementById('loadBtn').disabled = false;
   }
 
-  // ── Progress bar ──────────────────────────────────────────────────────────
+  // Progress bar (matching)
   let _progressTimer = null;
   const _stages = [
     { pct: 12, label: 'Fetching images…' },
@@ -1041,41 +937,35 @@
     { pct: 84, label: 'Ranking candidates…' },
     { pct: 91, label: 'Finalising results…' },
   ];
-
   function startProgress() {
     let i = 0;
     function step() {
       if (i >= _stages.length) return;
       const s = _stages[i++];
       setProgress(s.pct, s.label);
-      const delay = i === 1 ? 300 : i < 4 ? 900 : 1400;
-      _progressTimer = setTimeout(step, delay);
+      _progressTimer = setTimeout(step, i === 1 ? 300 : i < 4 ? 900 : 1400);
     }
     setProgress(0, 'Starting…');
     _progressTimer = setTimeout(step, 120);
   }
-
   function setProgress(pct, label) {
-    const fill  = document.getElementById('mpFill');
-    const lbl   = document.getElementById('mpLabel');
-    const pctEl = document.getElementById('mpPct');
+    const fill = document.getElementById('mpFill');
+    const lbl  = document.getElementById('mpLabel');
+    const pctEl= document.getElementById('mpPct');
     if (fill)  fill.style.width  = pct + '%';
     if (lbl)   lbl.textContent   = label;
     if (pctEl) pctEl.textContent = pct + '%';
   }
-
   function completeProgress(cb) {
-    clearTimeout(_progressTimer);
-    setProgress(100, 'Done.');
+    clearTimeout(_progressTimer); setProgress(100, 'Done.');
     setTimeout(cb, 350);
   }
 
-  // ── Load ─────────────────────────────────────────────────────────────────
+  // Load matches
   async function loadMatches() {
     const pid = _selectedProjectId;
     if (!pid) return;
     currentProjectId = pid;
-
     document.getElementById('tableContainer').innerHTML =
       `<div class="state-box">
         <div class="match-progress">
@@ -1086,12 +976,11 @@
           <div class="mp-track"><div class="mp-fill" id="mpFill"></div></div>
         </div>
       </div>`;
-      startProgress();
+    startProgress();
     document.getElementById('dashboard').style.display = 'none';
     document.getElementById('filtersBar').style.display = 'none';
     document.getElementById('bulkBtn').style.display = 'none';
     document.getElementById('noConsentNotice').style.display = 'none';
-
     try {
       const albumParam = _selectedAlbumId ? `?album_id=${encodeURIComponent(_selectedAlbumId)}` : '';
       const res = await fetch(`/api/matches/${pid}${albumParam}`);
@@ -1108,8 +997,8 @@
           document.getElementById('bulkBtn').style.display = 'inline-flex';
         if (data.stats.no_consent_found > 0) {
           document.getElementById('noConsentMsg').textContent =
-            `${data.stats.no_consent_found} images have a known person but no matching consent PDF could be found in Canto. ` +
-            `${data.stats.no_person_meta} images have no "Person Shown" metadata — these cannot be matched without manual input.`;
+            `${data.stats.no_consent_found} images have a known person but no matching consent PDF found. ` +
+            `${data.stats.no_person_meta} images have no "Person Shown" metadata.`;
           document.getElementById('noConsentNotice').style.display = 'flex';
         }
       });
@@ -1120,18 +1009,17 @@
     }
   }
 
-  // ── Stats ─────────────────────────────────────────────────────────────────
+  // Stats
   function renderStats(s) {
-    document.getElementById('sTotal').textContent      = s.total;
-    document.getElementById('sConfirmed').textContent  = s.confirmed;
-    document.getElementById('sAuto').textContent       = s.auto_ready;
-    document.getElementById('sReview').textContent     = s.needs_review;
-    document.getElementById('sNoMeta').textContent     = s.no_person_meta;
-    document.getElementById('sNoConsent').textContent  = s.no_consent_found;
-    document.getElementById('sCompliance').textContent = s.compliance + '%';
+    document.getElementById('sTotal').textContent     = s.total;
+    document.getElementById('sConfirmed').textContent = s.confirmed;
+    document.getElementById('sAuto').textContent      = s.auto_ready;
+    document.getElementById('sReview').textContent    = s.needs_review;
+    document.getElementById('sNoMeta').textContent    = s.no_person_meta;
+    document.getElementById('sNoConsent').textContent = s.no_consent_found;
+    document.getElementById('sCompliance').textContent= s.compliance + '%';
     document.getElementById('progressFill').style.width = s.compliance + '%';
   }
-
   function updateStatsFromLocal() {
     const t = allMatches.length;
     const confirmed    = allMatches.filter(m => m.decision === 'confirmed').length;
@@ -1145,31 +1033,29 @@
     renderFilterCounts(allMatches);
   }
 
-  // ── Filter counts ────────────────────────────────────────────────────────
+  // Filters
   function renderFilterCounts(matches) {
     const counts = {
-      all:         matches.length,
-      auto:        matches.filter(m => m.best_match?.tier === 'auto' && !m.decision).length,
-      review:      matches.filter(m => m.best_match?.tier === 'review' && !m.decision).length,
-      skip:        matches.filter(m => m.best_match?.tier === 'skip' && !m.decision).length,
-      no_meta:     matches.filter(m => !m.person_shown).length,
-      no_consent:  matches.filter(m => !m.best_match || m.best_match.score === 0).length,
-      confirmed:   matches.filter(m => m.decision === 'confirmed').length,
-      rejected:    matches.filter(m => m.decision === 'rejected').length,
+      all:        matches.length,
+      auto:       matches.filter(m => m.best_match?.tier === 'auto' && !m.decision).length,
+      review:     matches.filter(m => m.best_match?.tier === 'review' && !m.decision).length,
+      skip:       matches.filter(m => m.best_match?.tier === 'skip' && !m.decision).length,
+      no_meta:    matches.filter(m => !m.person_shown).length,
+      no_consent: matches.filter(m => !m.best_match || m.best_match.score === 0).length,
+      confirmed:  matches.filter(m => m.decision === 'confirmed').length,
+      rejected:   matches.filter(m => m.decision === 'rejected').length,
     };
     for (const [k, v] of Object.entries(counts)) {
       const el = document.getElementById(`fc-${k}`);
       if (el) el.textContent = v;
     }
   }
-
   function setFilter(f, btn) {
     currentFilter = f;
     document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     renderTable(allMatches);
   }
-
   function filtered(matches) {
     if (currentFilter === 'all')        return matches;
     if (currentFilter === 'confirmed')  return matches.filter(m => m.decision === 'confirmed');
@@ -1180,7 +1066,7 @@
     return matches.filter(m => m.best_match?.tier === currentFilter && !m.decision);
   }
 
-  // ── Table ─────────────────────────────────────────────────────────────────
+  // Table
   function renderTable(matches) {
     const rows = filtered(matches);
     if (!rows.length) {
@@ -1191,18 +1077,10 @@
     document.getElementById('tableContainer').innerHTML = `
       <div class="table-wrap">
         <table>
-          <thead>
-            <tr>
-              <th></th>
-              <th>Photo</th>
-              <th>Person shown</th>
-              <th>Project</th>
-              <th>Consent PDF</th>
-              <th>Score</th>
-              <th>Signals</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
+          <thead><tr>
+            <th></th><th>Photo</th><th>Person shown</th><th>Project</th>
+            <th>Consent PDF</th><th>Score</th><th>Signals</th><th>Actions</th>
+          </tr></thead>
           <tbody>${rows.map(rowHtml).join('')}</tbody>
         </table>
       </div>`;
@@ -1210,41 +1088,20 @@
 
   function rowHtml(m) {
     const bm = m.best_match;
-
     const thumb = m.image_thumb
       ? `<img class="thumb" src="${m.image_thumb}" loading="lazy" alt="" />`
       : `<div class="thumb-ph"><span class="material-icons-round">image</span></div>`;
-
-    const tierPill = bm
-      ? `<span class="tier-pill tier-${bm.tier}">${bm.tier}</span>`
-      : `<span class="tier-pill tier-none">None</span>`;
-
-    const scoreHtml = bm
-      ? `<span class="score-val">${bm.score.toFixed(0)}%</span>`
-      : `<span style="color:var(--fp-secondary-50)">—</span>`;
-
-    const signalsHtml = bm?.signals
-      ? Object.entries(bm.signals).map(([k,v]) =>
-          `<div>${k[0].toUpperCase()}=${v.score.toFixed(0)}</div>`).join('')
-      : '—';
-
-    const pdfCell = bm
-      ? `<a class="pdf-link" href="${bm.pdf_url}" target="_blank" title="${bm.pdf_name}">${bm.pdf_name}</a>`
-      : `<span style="color:var(--fp-secondary-50); font-size:var(--fs-xs)">No consent found</span>`;
-
-    const personHtml = m.person_shown
-      ? `<div class="cell-primary" title="${m.person_shown}">${m.person_shown}</div>`
-      : `<div style="color:var(--fp-secondary-50); font-size:var(--fs-xs); font-style:italic">No metadata</div>`;
-
+    const tierPill = bm ? `<span class="tier-pill tier-${bm.tier}">${bm.tier}</span>` : `<span class="tier-pill tier-none">None</span>`;
+    const scoreHtml = bm ? `<span class="score-val">${bm.score.toFixed(0)}%</span>` : `<span style="color:var(--fp-secondary-50)">—</span>`;
+    const signalsHtml = bm?.signals ? Object.entries(bm.signals).map(([k,v]) => `<div>${k[0].toUpperCase()}=${v.score.toFixed(0)}</div>`).join('') : '—';
+    const pdfCell = bm ? `<a class="pdf-link" href="${bm.pdf_url}" target="_blank" title="${bm.pdf_name}">${bm.pdf_name}</a>` : `<span style="color:var(--fp-secondary-50); font-size:var(--fs-xs)">No consent found</span>`;
+    const personHtml = m.person_shown ? `<div class="cell-primary" title="${m.person_shown}">${m.person_shown}</div>` : `<div style="color:var(--fp-secondary-50); font-size:var(--fs-xs); font-style:italic">No metadata</div>`;
     const confirmActive = m.decision === 'confirmed' ? 'active' : '';
     const rejectActive  = m.decision === 'rejected'  ? 'active' : '';
-
     return `
       <tr class="${m.decision || ''}" id="row-${m.image_id}">
         <td>${thumb}</td>
-        <td>
-          <div class="cell-primary" title="${m.image_name}">${truncate(m.image_name, 28)}</div>
-        </td>
+        <td><div class="cell-primary" title="${m.image_name}">${truncate(m.image_name, 28)}</div></td>
         <td>
           ${personHtml}
           <div class="cell-secondary">${[m.city, m.country].filter(Boolean).join(', ') || ''}</div>
@@ -1261,8 +1118,7 @@
             </button>
             <button class="btn-reject ${rejectActive}" onclick="decide('${m.image_id}','${m.image_name}','${bm.pdf_id}','${bm.pdf_name}','rejected')">
               <span class="material-icons-round" style="font-size:12px">close</span>
-            </button>
-            ` : ''}
+            </button>` : ''}
             <button class="btn-detail" onclick="openDetail('${m.image_id}')">
               <span class="material-icons-round" style="font-size:12px">open_in_new</span>
             </button>
@@ -1271,7 +1127,7 @@
       </tr>`;
   }
 
-  // ── Decisions ─────────────────────────────────────────────────────────────
+  // Decisions
   async function decide(imageId, imageName, pdfId, pdfName, action) {
     const res = await fetch('/api/decision', {
       method: 'POST',
@@ -1279,20 +1135,17 @@
       body: JSON.stringify({image_id: imageId, image_name: imageName, pdf_id: pdfId, pdf_name: pdfName, action}),
     });
     const data = await res.json();
-
     const m = allMatches.find(x => x.image_id === imageId);
     if (m) { m.decision = action; m.decided_pdf_id = pdfId; }
-
     const row = document.getElementById(`row-${imageId}`);
     if (row) {
       row.className = action;
       row.querySelectorAll('.btn-confirm').forEach(b => b.classList.toggle('active', action==='confirmed'));
       row.querySelectorAll('.btn-reject').forEach(b => b.classList.toggle('active', action==='rejected'));
     }
-
     showToast(
       action === 'confirmed'
-        ? (data.linked_in_canto ? 'Confirmed and linked in Canto' : 'Confirmed (Canto link failed — check API)')
+        ? (data.linked_in_canto ? 'Confirmed and linked in Canto' : 'Confirmed (Canto link failed)')
         : 'Rejected',
       action === 'confirmed' ? 'success' : 'error'
     );
@@ -1303,28 +1156,23 @@
     const res = await fetch(`/api/decision/bulk-confirm?project_id=${currentProjectId}`, {method:'POST'});
     const data = await res.json();
     allMatches.forEach(m => {
-      if (m.best_match?.tier === 'auto' && !m.decision) {
-        m.decision = 'confirmed';
-        m.decided_pdf_id = m.best_match.pdf_id;
-      }
+      if (m.best_match?.tier === 'auto' && !m.decision) { m.decision = 'confirmed'; m.decided_pdf_id = m.best_match.pdf_id; }
     });
-    renderTable(allMatches);
-    updateStatsFromLocal();
+    renderTable(allMatches); updateStatsFromLocal();
     showToast(`${data.confirmed} matches confirmed`, 'success');
     document.getElementById('bulkBtn').style.display = 'none';
   }
 
-  // ── Detail modal ──────────────────────────────────────────────────────────
+  // Detail modal
   function openDetail(imageId) {
     const m = allMatches.find(x => x.image_id === imageId);
     if (!m) return;
-
     const candidatesHtml = (m.candidates || []).map(c => {
       const scoreColor = c.score >= 85 ? 'var(--fp-success)' : c.score >= 60 ? 'var(--fp-warning)' : 'var(--fp-secondary-50)';
-      const tierLabel  = c.score >= 85 ? 'AUTO' : c.score >= 60 ? 'REVIEW' : 'LOW';
-      const tierBg     = c.score >= 85 ? 'background:var(--fp-light-primary);color:var(--fp-primary);border:1px solid var(--fp-primary)'
-                       : c.score >= 60 ? 'background:#FFF8E6;color:#7A5500;border:1px solid var(--fp-warning)'
-                       : 'background:var(--fp-secondary-15);color:var(--fp-secondary-75);border:1px solid var(--fp-secondary-25)';
+      const tierBg = c.score >= 85 ? 'background:var(--fp-light-primary);color:var(--fp-primary);border:1px solid var(--fp-primary)'
+                   : c.score >= 60 ? 'background:#FFF8E6;color:#7A5500;border:1px solid var(--fp-warning)'
+                   : 'background:var(--fp-secondary-15);color:var(--fp-secondary-75);border:1px solid var(--fp-secondary-25)';
+      const tierLabel = c.score >= 85 ? 'AUTO' : c.score >= 60 ? 'REVIEW' : 'LOW';
       const sigs = Object.entries(c.signals || {}).map(([k, v]) => `
         <span class="c-sig">
           <span class="c-sig-label">${k}</span>
@@ -1347,20 +1195,12 @@
           </div>
         </div>`;
     }).join('');
-
     const cantoLink = m.image_canto_url
       ? `<a href="${m.image_canto_url}" target="_blank" class="btn-detail" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-top:6px">
-           <span class="material-icons-round" style="font-size:13px">open_in_new</span> Open in Canto
-         </a>` : '';
-
+           <span class="material-icons-round" style="font-size:13px">open_in_new</span> Open in Canto</a>` : '';
     document.getElementById('modalBody').innerHTML = `
       <div class="modal-title">${m.image_name}</div>
-      ${m.image_thumb
-        ? `<div style="position:relative">
-             <img class="modal-img" src="${m.image_thumb}" alt="" style="max-height:320px" />
-             ${cantoLink}
-           </div>`
-        : cantoLink}
+      ${m.image_thumb ? `<div><img class="modal-img" src="${m.image_thumb}" alt="" style="max-height:320px" />${cantoLink}</div>` : cantoLink}
       <div class="meta-row">
         <div class="meta-item"><div class="m-key">Person shown</div><div class="m-val">${m.person_shown || '—'}</div></div>
         <div class="meta-item"><div class="m-key">Location</div><div class="m-val">${[m.city,m.country].filter(Boolean).join(', ')||'—'}</div></div>
@@ -1368,23 +1208,21 @@
         <div class="meta-item"><div class="m-key">Decision</div><div class="m-val">${m.decision || 'Unreviewed'}</div></div>
       </div>
       <div class="section-label">Top consent candidates</div>
-      ${candidatesHtml || '<p style="color:var(--fp-secondary-75); font-size:var(--fs-sm)">No candidates found.</p>'}
-    `;
+      ${candidatesHtml || '<p style="color:var(--fp-secondary-75); font-size:var(--fs-sm)">No candidates found.</p>'}`;
     document.getElementById('modalOverlay').classList.add('open');
   }
 
   function closeModal() { document.getElementById('modalOverlay').classList.remove('open'); }
   function closeModalOutside(e) { if (e.target === document.getElementById('modalOverlay')) closeModal(); }
 
-  // ── Toast ──────────────────────────────────────────────────────────────────
+  // Toast
   function showToast(msg, type='') {
     const t = document.getElementById('toast');
-    t.textContent = msg;
-    t.className = `toast ${type} show`;
+    t.textContent = msg; t.className = `toast ${type} show`;
     setTimeout(() => t.classList.remove('show'), 2800);
   }
 
-  function truncate(str, n) { return str.length > n ? str.slice(0, n) + '…' : str; }
+  function truncate(str, n) { return str && str.length > n ? str.slice(0, n) + '…' : str || ''; }
 
   init();
 </script>
