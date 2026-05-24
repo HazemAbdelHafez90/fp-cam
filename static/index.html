@@ -685,15 +685,22 @@
   let _liveData      = {};   // folder_id → row — used for live hero during scan
 
   async function loadCompliance() {
-    const res  = await fetch('/api/compliance');
-    const data = await res.json();
-    // Seed _liveData from the API result
-    _liveData = {};
-    (data.projects || []).forEach(p => { if (p.folder_id) _liveData[p.folder_id] = p; });
-    renderComplianceHero(data.totals || {});
-    setAllCompRows(data.projects || []);
-    updateScanButton(data.projects || []);
-    return data;
+    try {
+      const res  = await fetch('/api/compliance');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      // Seed _liveData from the API result
+      _liveData = {};
+      (data.projects || []).forEach(p => { if (p.folder_id) _liveData[p.folder_id] = p; });
+      renderComplianceHero(data.totals || {});
+      setAllCompRows(data.projects || []);
+      updateScanButton(data.projects || []);
+      return data;
+    } catch(e) {
+      // Non-fatal — show empty state but don't break init
+      console.warn('loadCompliance failed:', e.message);
+      return { projects: [], totals: {} };
+    }
   }
 
   function renderComplianceHero(t) {
@@ -868,7 +875,7 @@
 
     if (!pending.length) {
       showToast('All projects already scanned.', '');
-      finishScan(false);
+      finishScan();
       return;
     }
 
@@ -910,7 +917,7 @@
     const stopped = _stopRequested;
     setScanProgress(pending.length, pending.length, stopped ? 'Stopped' : 'Complete');
     showToast(stopped ? 'Scan stopped' : 'Scan complete', stopped ? '' : 'success');
-    finishScan(true);
+    finishScan();
   }
 
   function stopScan() {
@@ -918,20 +925,19 @@
     document.getElementById('scanStatusLabel').textContent = 'Stopping…';
   }
 
-  function finishScan(reloadTable) {
+  function finishScan() {
     _scanRunning = false;
     document.getElementById('btnScan').style.display   = 'inline-flex';
     document.getElementById('btnStop').style.display   = 'none';
     document.getElementById('btnRescan').disabled      = false;
-    if (reloadTable) {
-      setTimeout(() => {
-        document.getElementById('scanProgressWrap').style.display = 'none';
-        loadCompliance();
-      }, 2000);
-    } else {
-      document.getElementById('btnScan').disabled = false;
+    // Keep the progress bar visible briefly then hide — do NOT reload table
+    // from Supabase. _allCompRows already has all scanned rows from upsertCompRow.
+    setTimeout(() => {
       document.getElementById('scanProgressWrap').style.display = 'none';
-    }
+    }, 2500);
+    updateScanButton(_allCompRows);
+    // Re-render in case pagination moved
+    renderTablePage();
   }
 
   function setScanProgress(done, total, label) {
@@ -971,9 +977,9 @@
     await fetch('/api/compliance/reset', {method: 'POST'});
     _liveData = {}; _allCompRows = []; _currentPage = 1;
     renderTablePage();
-    renderComplianceHero({});
+    renderComplianceHero({ total_images:0, with_consent:0, needs_consent:0, no_person:0, no_images:0, compliance_pct:0 });
     document.getElementById('btnScan').disabled = false;
-    startScan(true);
+    startScan(false);
   }
 
   function openProjectMatching(projectId, folderId) {
