@@ -675,22 +675,30 @@
   }
 
   function compRowHtml(p) {
-    const total = p.total_images || 0;
-    const pct   = total ? Math.round((p.with_consent || 0) / total * 100) : 0;
+    const total   = p.total_images || 0;
+    const pct     = total ? Math.round((p.with_consent || 0) / total * 100) : 0;
+    const name    = p.project_name || p.folder_id || '—';
+    const pid     = p.project_id   || '';
+    const fid     = p.folder_id    || '';
+
     const statusBadge = {
       done:     `<span class="status-badge sb-done"><span class="material-icons-round" style="font-size:10px">check</span>Done</span>`,
       scanning: `<span class="status-badge sb-scanning">Scanning…</span>`,
-      error:    `<span class="status-badge sb-error" title="${p.error_msg||''}">Error</span>`,
+      error:    `<span class="status-badge sb-error" title="${(p.error_msg||'').replace(/'/g,"'")}">Error</span>`,
       pending:  `<span class="status-badge sb-pending">Pending</span>`,
     }[p.status] || `<span class="status-badge sb-pending">—</span>`;
 
-    const scannedAt = p.scanned_at
-      ? new Date(p.scanned_at).toLocaleDateString('en-GB', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
-      : '—';
+    // Only make clickable if we have a project_id to drill into
+    const clickable = pid
+      ? `onclick="openProjectMatching('${pid}', '${fid}')" style="cursor:pointer"`
+      : '';
 
-    return `<div class="comp-row" onclick="openProjectMatching('${p.project_id}', '${p.folder_id}')">
-      <div><span class="cr-name">${p.project_name || p.folder_id}</span>${p.project_id ? `<span class="cr-pid">${p.project_id}</span>` : ''}</div>
-      <div class="cr-num">${total || 0}</div>
+    return `<div class="comp-row" data-folder-id="${fid}" ${clickable}>
+      <div>
+        <span class="cr-name">${name}</span>
+        ${pid ? `<span class="cr-pid">${pid}</span>` : ''}
+      </div>
+      <div class="cr-num">${total}</div>
       <div class="cr-num green">${p.with_consent || 0}</div>
       <div class="cr-num orange">${p.needs_consent || 0}</div>
       <div class="cr-num grey">${p.no_person || 0}</div>
@@ -783,31 +791,21 @@
   }
 
   function updateCompRowStatus(folderId, status) {
-    // Find row by onclick attribute and update badge
-    const rows = document.querySelectorAll('.comp-row');
-    rows.forEach(row => {
-      if (row.getAttribute('onclick') && row.getAttribute('onclick').includes(folderId)) {
-        const badge = row.querySelector('.status-badge');
-        if (badge) badge.outerHTML = `<span class="status-badge sb-${status}">${status === 'scanning' ? 'Scanning…' : status}</span>`;
-      }
-    });
+    const el = document.querySelector(`.comp-row[data-folder-id="${folderId}"]`);
+    if (el) {
+      const badge = el.querySelector('.status-badge');
+      if (badge) badge.outerHTML = `<span class="status-badge sb-${status}">${status === 'scanning' ? 'Scanning…' : status}</span>`;
+    }
   }
 
   function upsertCompRow(folderId, row) {
-    // Re-render this specific row in the table
-    const rows = document.querySelectorAll('.comp-row');
-    let found = false;
-    rows.forEach(el => {
-      if (el.getAttribute('onclick') && el.getAttribute('onclick').includes(folderId)) {
-        el.outerHTML = compRowHtml(row);
-        found = true;
-      }
-    });
-    if (!found) {
-      // Append new row
-      document.getElementById('compTableBody').insertAdjacentHTML('beforeend', compRowHtml(row));
+    const el = document.querySelector(`.comp-row[data-folder-id="${folderId}"]`);
+    const html = compRowHtml({...row, folder_id: folderId});
+    if (el) {
+      el.outerHTML = html;
+    } else {
+      document.getElementById('compTableBody').insertAdjacentHTML('beforeend', html);
     }
-    // Update hero totals incrementally from a fresh load (lightweight)
     fetch('/api/compliance').then(r => r.json()).then(d => renderComplianceHero(d.totals || {}));
   }
 
