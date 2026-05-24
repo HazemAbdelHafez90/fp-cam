@@ -863,9 +863,17 @@
       fetch('/api/compliance').then(r => r.json()),
     ]);
 
-    // Seed live data from existing done rows
+    // Seed _liveData and _allCompRows from Supabase — this ensures
+    // previously scanned rows are visible immediately (even after a page refresh)
     _liveData = {};
-    (compRes.projects || []).forEach(p => { if (p.folder_id) _liveData[p.folder_id] = p; });
+    (compRes.projects || []).forEach(p => {
+      if (!p.folder_id) return;
+      _liveData[p.folder_id] = p;
+      const idx = _allCompRows.findIndex(r => r.folder_id === p.folder_id);
+      if (idx < 0) _allCompRows.push(p);
+      else          _allCompRows[idx] = p;
+    });
+    if (_allCompRows.length) renderTablePage();
     recomputeLiveHero();
 
     const doneIds = new Set(
