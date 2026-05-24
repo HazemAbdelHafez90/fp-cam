@@ -501,6 +501,19 @@
       </div>
     </div>
 
+    <!-- DB status banner (hidden until checked) -->
+    <div id="dbErrorBanner" style="display:none; background:#FEF0F0; border:1px solid var(--fp-error);
+         border-radius:var(--radius-sm); padding:12px 18px; margin-bottom:16px;
+         font-size:var(--fs-xs); color:var(--fp-darkgrey);">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px; font-weight:700; color:var(--fp-error);">
+        <span class="material-icons-round" style="font-size:15px">error_outline</span>
+        <span id="dbErrorTitle">Database error</span>
+      </div>
+      <div id="dbErrorMsg"></div>
+      <pre id="dbErrorSql" style="display:none; margin-top:10px; background:#fff; border:1px solid var(--fp-secondary-25);
+           border-radius:4px; padding:10px; font-size:11px; white-space:pre-wrap; font-family:var(--font-mono); line-height:1.6;"></pre>
+    </div>
+
     <!-- Scan bar -->
     <div class="scan-bar">
       <button class="btn btn-primary" id="btnScan" onclick="startScan(false)">
@@ -909,6 +922,7 @@
         });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const row = await res.json();
+        if (row.db_error) console.warn(`DB write failed for ${proj.name}:`, row.db_error);
 
         // Update live data + hero without extra API call
         _liveData[proj.id] = {...row, folder_id: proj.id};
@@ -1093,11 +1107,35 @@
     const [projects] = await Promise.all([
       fetch('/api/projects').then(r => r.json()),
       loadCompliance(),
+      checkDbStatus(),
     ]);
     _allProjects = projects.filter(p => p.project_id);
     search.placeholder = 'Select a project…';
     dropdown.innerHTML = '';
     document.getElementById('loadBtn').disabled = false;
+  }
+
+  async function checkDbStatus() {
+    try {
+      const res  = await fetch('/api/compliance/status');
+      const data = await res.json();
+      if (!data.ok) {
+        const banner = document.getElementById('dbErrorBanner');
+        document.getElementById('dbErrorTitle').textContent = 'Database setup required';
+        document.getElementById('dbErrorMsg').textContent   = data.error || 'Unknown error';
+        if (data.sql) {
+          const sqlEl = document.getElementById('dbErrorSql');
+          sqlEl.textContent    = data.sql;
+          sqlEl.style.display  = 'block';
+        }
+        banner.style.display = 'block';
+        // Disable scan buttons
+        document.getElementById('btnScan').disabled   = true;
+        document.getElementById('btnRescan').disabled = true;
+      }
+    } catch(e) {
+      console.warn('DB status check failed:', e.message);
+    }
   }
 
   // Progress bar (matching)

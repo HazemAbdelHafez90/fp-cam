@@ -525,14 +525,18 @@ def _get_confirmed_image_ids(image_ids: list) -> set:
     return {row["image_id"] for row in r.json()}
 
 
-def _upsert_compliance_row(row: dict):
+def _upsert_compliance_row(row: dict) -> str | None:
+    """Upsert one row. Returns error string on failure, None on success."""
     if not _sb_available():
-        return
-    requests.post(
+        return "Supabase not configured"
+    r = requests.post(
         f"{_SB_URL}/rest/v1/{_COMPLIANCE_TABLE}",
         headers={**_sb_headers(), "Prefer": "resolution=merge-duplicates"},
         json=row, timeout=10,
     )
+    if not r.ok:
+        return f"Supabase {r.status_code}: {r.text}"
+    return None
 
 
 @app.get("/api/compliance")
@@ -606,8 +610,8 @@ def scan_project_compliance(folder_id: str, body: dict):
             "scanned_at":   datetime.now(timezone.utc).isoformat(),
             "error_msg":    None,
         }
-        _upsert_compliance_row(row)
-        return row
+        db_error = _upsert_compliance_row(row)
+        return {**row, "db_error": db_error}
 
     except Exception as e:
         _upsert_compliance_row({
@@ -618,6 +622,40 @@ def scan_project_compliance(folder_id: str, body: dict):
             "error_msg":    str(e),
         })
         raise HTTPException(500, str(e))
+
+
+@app.get("/api/compliance/status")
+def compliance_status():
+    """Check whether Supabase is reachable and the project_compliance table exists."""
+    if not _sb_available():
+        return {"ok": False, "error": "SUPABASE_URL or SUPABASE_KEY not set"}
+    r = requests.get(
+        f"{_SB_URL}/rest/v1/{_COMPLIANCE_TABLE}?select=folder_id&limit=1",
+        headers=_sb_headers(), timeout=8,
+    )
+    if r.status_code == 404 or (not r.ok and "does not exist" in r.text):
+        return {
+            "ok": False,
+            "error": "Table 'project_compliance' not found. Run this SQL in Supabase:",
+            "sql": (
+                "create table project_compliance (\n"
+                "  folder_id     text primary key,\n"
+                "  project_name  text,\n"
+                "  project_id    text,\n"
+                "  total_images  int  default 0,\n"
+                "  with_consent  int  default 0,\n"
+                "  needs_consent int  default 0,\n"
+                "  no_person     int  default 0,\n"
+                "  status        text default 'pending',\n"
+                "  scanned_at    timestamptz,\n"
+                "  error_msg     text\n"
+                ");\n"
+                "alter table project_compliance disable row level security;"
+            ),
+        }
+    if not r.ok:
+        return {"ok": False, "error": f"Supabase {r.status_code}: {r.text}"}
+    return {"ok": True, "row_count": len(r.json())}
 
 
 @app.post("/api/compliance/reset")
