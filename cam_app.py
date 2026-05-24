@@ -434,13 +434,16 @@ def logout():
 
 @app.get("/api/projects")
 def list_projects():
-    """Return project folders that have at least one child album (i.e. contain images)."""
+    """Return project folders that have a Photos sub-album (reliable signal of actual images)."""
     tree = canto.get_folder_tree()
     projects = []
     for folder in tree:
         children = folder.get("children", [])
-        if not children:
-            continue  # skip folders with no albums → no images
+        # Require at least one album whose name contains "photo" — empty or video-only
+        # folders (e.g. Videos_1434, Documents_1434) are excluded.
+        photos_albums = [c for c in children if re.search(r"photo", c.get("name", ""), re.I)]
+        if not photos_albums:
+            continue
         m = re.search(r"[_](\d{3,5})[_]", folder.get("name", ""))
         pid = m.group(1) if m else None
         projects.append({
