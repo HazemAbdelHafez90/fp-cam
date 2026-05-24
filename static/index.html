@@ -958,15 +958,21 @@
   }
 
   function upsertCompRow(folderId, row) {
-    // Update the in-memory list
-    const idx = _allCompRows.findIndex(r => r.folder_id === folderId);
+    const idx    = _allCompRows.findIndex(r => r.folder_id === folderId);
     const merged = {...row, folder_id: folderId};
-    if (idx >= 0) _allCompRows[idx] = merged;
-    else           _allCompRows.push(merged);
+    const isNew  = idx < 0;
 
-    // If the folder is on the current page, update the DOM directly
-    const el = document.querySelector(`.comp-row[data-folder-id="${folderId}"]`);
-    if (el) el.outerHTML = compRowHtml(merged);
+    if (isNew) _allCompRows.push(merged);
+    else        _allCompRows[idx] = merged;
+
+    if (isNew) {
+      // New entry: re-render the page so the empty-state is replaced
+      renderTablePage();
+    } else {
+      // Existing row: patch in-place if it's visible on the current page
+      const el = document.querySelector(`.comp-row[data-folder-id="${folderId}"]`);
+      if (el) el.outerHTML = compRowHtml(merged);
+    }
 
     updateScanButton(_allCompRows);
   }
