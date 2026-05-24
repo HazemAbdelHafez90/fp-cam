@@ -379,7 +379,7 @@ def _load_pdf_data(doc: dict) -> dict | None:
         return None
     try:
         raw = canto.download_pdf_cached(doc["id"], url)
-        data = parse_consent_pdf(raw)
+        data = parse_consent_pdf(raw, filename=doc.get("name", ""))
         data["_id"] = doc["id"]
         data["_name"] = doc.get("name", "")
         data["_url"] = doc.get("url", {}).get("detail", "")

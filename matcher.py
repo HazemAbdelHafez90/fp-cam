@@ -109,7 +109,7 @@ def _score_name(image: dict, pdf_data: dict) -> SignalScore:
     if not image_persons:
         return SignalScore("name", 0, WEIGHTS["name"], "no 'Person Shown' on image")
     if not pdf_names:
-        return SignalScore("name", 0, WEIGHTS["name"], "no name in PDF")
+        return SignalScore("name", 0, WEIGHTS["name"], "no name in PDF or filename")
 
     # Find the best-matching (image_person, pdf_name) pair
     best, best_pair = 0.0, ("", "")
@@ -120,7 +120,8 @@ def _score_name(image: dict, pdf_data: dict) -> SignalScore:
                 best, best_pair = s, (img_p, pdf_n)
 
     n_persons = len(image_persons)
-    detail = f"'{best_pair[0]}' ↔ '{best_pair[1]}'"
+    source_tag = " [from filename]" if pdf_data.get("name_source") == "filename" else ""
+    detail = f"'{best_pair[0]}' ↔ '{best_pair[1]}'{source_tag}"
     if n_persons > 1:
         detail += f" ({n_persons} people in image)"
     return SignalScore("name", best, WEIGHTS["name"], detail)
