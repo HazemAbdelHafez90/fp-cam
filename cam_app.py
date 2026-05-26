@@ -973,7 +973,22 @@ def scan_matches(project_id: str, body: dict):
             r["best_match"]["pdf_id"]
             for r in results_for_storage
             if r.get("best_match") and r["best_match"].get("pdf_id")
+            and r["best_match"].get("score", 0) >= 60
         }
+        # Also exclude PDFs that were manually confirmed via decisions
+        for r in results_for_storage:
+            did = r.get("decided_pdf_id")
+            if did:
+                matched_pdf_ids.add(did)
+        # Also exclude PDFs linked via Canto's built-in Consent field
+        for r in results_for_storage:
+            linked = r.get("consent_linked")
+            if linked:
+                # consent_linked is the PDF name or URL; try to match by name
+                for c in r.get("candidates", []):
+                    if c.get("pdf_name") == linked or c.get("pdf_url") == linked:
+                        matched_pdf_ids.add(c["pdf_id"])
+                        break
         pdf_candidate_map: dict[str, dict] = {}
         for r in results_for_storage:
             for c in r.get("candidates", []):
