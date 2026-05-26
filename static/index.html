@@ -1842,16 +1842,15 @@
     } else if (persons.length === 1) {
       personHtml = `<div class="cell-primary">${persons[0]}</div>`;
     } else {
-      // Each person needs their own consent form. best_match covers only ONE person.
-      // A confirmed decision means ops manually resolved — treat all as matched.
-      // Otherwise: best_match score ≥ 60 = 1 matched, rest unmatched.
+      // Each person needs their own consent form. One confirmation = one person covered.
       const isConfirmed  = m.decision === 'confirmed';
-      const matchedCount = isConfirmed ? persons.length : (bm && bm.score >= 60 ? 1 : 0);
-      const fracClass    = matchedCount === persons.length ? 'full' : matchedCount > 0 ? 'partial' : 'none';
+      const algoMatched  = bm && bm.score >= 60 ? 1 : 0;
+      const matchedCount = isConfirmed ? 1 : algoMatched;
+      const fracClass    = matchedCount >= persons.length ? 'full' : matchedCount > 0 ? 'partial' : 'none';
       personHtml =
         `<div class="person-list">` +
         persons.map((p, i) => {
-          const matched = isConfirmed || (bm && bm.score >= 60 && i === 0);
+          const matched = i === 0 && (isConfirmed || algoMatched > 0);
           return `<div class="person-row">
             <span class="material-icons-round ${matched ? 'pi-check' : 'pi-miss'}">${matched ? 'check_circle' : 'radio_button_unchecked'}</span>
             <span>${p}</span>
@@ -1863,7 +1862,7 @@
     const confirmActive = m.decision === 'confirmed' ? 'active' : '';
     const rejectActive  = m.decision === 'rejected'  ? 'active' : '';
     return `
-      <tr class="${m.decision || ''}" id="row-${m.image_id}">
+      <tr class="${(m.decision === 'confirmed' && (m.persons||[]).length > 1) ? '' : (m.decision || '')}" id="row-${m.image_id}">
         <td>${thumb}</td>
         <td><div class="cell-primary" title="${m.image_name}">${truncate(m.image_name, 28)}</div></td>
         <td>
