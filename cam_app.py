@@ -527,6 +527,29 @@ def test_relate(body: dict):
     return results
 
 
+@app.get("/api/debug/document/{doc_id}")
+def debug_document(doc_id: str):
+    """Return raw Canto document asset + all REST related endpoints for a document ID."""
+    result = {}
+    try:
+        result["api_v1_document"] = canto.get_asset("document", doc_id)
+    except Exception as e:
+        result["api_v1_document"] = {"error": str(e)}
+    # Try the REST related list endpoint
+    for path in [
+        f"/rest/related?id={doc_id}&scheme=document",
+        f"/rest/related/list?id={doc_id}",
+        f"/rest/related/{doc_id}",
+    ]:
+        try:
+            from canto_client import _request, BASE_URL
+            resp = _request("GET", f"{BASE_URL}{path}")
+            result[path] = resp.json() if resp.ok else {"status": resp.status_code, "text": resp.text[:300]}
+        except Exception as e:
+            result[path] = {"error": str(e)}
+    return result
+
+
 @app.get("/api/debug/{project_id}")
 def debug_project(project_id: str):
     """Return raw Canto search results for images and documents (unfiltered)."""
