@@ -190,7 +190,7 @@
 
     .comp-thead {
       display: grid;
-      grid-template-columns: 1fr 68px 80px 110px 90px 150px 96px;
+      grid-template-columns: 1fr 68px 72px 72px 72px 96px 150px 96px;
       padding: 9px 18px;
       font-size: var(--fs-xs);
       font-weight: 700;
@@ -202,7 +202,7 @@
     }
     .comp-row {
       display: grid;
-      grid-template-columns: 1fr 68px 80px 110px 90px 150px 96px;
+      grid-template-columns: 1fr 68px 72px 72px 72px 96px 150px 96px;
       padding: 10px 18px;
       font-size: var(--fs-sm);
       border-bottom: 1px solid var(--fp-secondary-25);
@@ -407,6 +407,40 @@
     /* No consent callout */
     .no-consent-notice { background: var(--fp-light-primary); border: 1px solid var(--fp-primary); border-radius: var(--radius-sm); padding: 10px 16px; font-size: var(--fs-xs); color: var(--fp-darkgrey); margin: 14px 32px 0; display: flex; align-items: center; gap: 8px; }
     .no-consent-notice span.material-icons-round { font-size: 16px; color: var(--fp-primary); }
+    .view-tabs { display: flex; gap: 4px; margin: 14px 32px 0; border-bottom: 2px solid var(--fp-secondary-25); }
+    .view-tab { font-family: var(--font-sans); font-size: var(--fs-xs); font-weight: 700; padding: 6px 14px 8px; border: none; background: none; cursor: pointer; color: var(--fp-secondary-75); border-bottom: 2px solid transparent; margin-bottom: -2px; transition: color .15s, border-color .15s; display: flex; align-items: center; gap: 6px; }
+    .view-tab:hover { color: var(--fp-darkgrey); }
+    .view-tab.active { color: var(--fp-primary); border-bottom-color: var(--fp-primary); }
+    .view-tab .filter-count { background: var(--fp-secondary-10, #f0f0f0); color: var(--fp-secondary-75); border-radius: 10px; padding: 0 6px; font-size: 10px; }
+    .view-tab.active .filter-count { background: var(--fp-light-primary); color: var(--fp-primary); }
+    .orphan-table-wrap { padding: 0 32px 32px; }
+    .orphan-table { width: 100%; border-collapse: collapse; font-size: var(--fs-xs); }
+    .orphan-table th { text-align: left; padding: 8px 12px; border-bottom: 2px solid var(--fp-secondary-25); color: var(--fp-secondary-75); font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap; }
+    .orphan-table td { padding: 10px 12px; border-bottom: 1px solid var(--fp-secondary-10, #f4f4f4); vertical-align: middle; }
+    .orphan-table tr:last-child td { border-bottom: none; }
+    .orphan-table tr:hover td { background: var(--fp-secondary-bg); }
+    .orphan-score { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
+    .orphan-score.high { color: var(--fp-warning, #d97706); }
+    .orphan-score.low  { color: var(--fp-secondary-50); }
+    .orphan-thumb { width: 36px; height: 36px; object-fit: cover; border-radius: 3px; }
+    .orphan-thumb-ph { width: 36px; height: 36px; background: var(--fp-secondary-10,#f4f4f4); border-radius: 3px; display:flex; align-items:center; justify-content:center; color:var(--fp-secondary-50); }
+    .audit-bar { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin: 12px 32px 0; padding: 10px 16px; background: var(--fp-secondary-bg); border: 1px solid var(--fp-secondary-25); border-radius: var(--radius-sm); flex-wrap: wrap; }
+    .audit-stats { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .audit-stat { font-size: var(--fs-xs); color: var(--fp-darkgrey); }
+    .audit-stat strong { font-weight: 700; }
+    .audit-stat.warn strong { color: var(--fp-warning, #d97706); }
+    .audit-stat.ok   strong { color: var(--fp-success); }
+    .audit-actions { display: flex; align-items: center; gap: 10px; }
+    .audit-scanned { font-size: var(--fs-xs); color: var(--fp-secondary-50); white-space: nowrap; }
+    .btn-sm { padding: 4px 10px; font-size: var(--fs-xs); min-height: 28px; }
+    .person-list { display: flex; flex-direction: column; gap: 3px; }
+    .person-row { display: flex; align-items: center; gap: 5px; font-size: var(--fs-xs); }
+    .person-row .pi-check { color: var(--fp-success); font-size: 13px; }
+    .person-row .pi-miss  { color: var(--fp-warning, #d97706); font-size: 13px; }
+    .consent-fraction { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 700; padding: 2px 7px; border-radius: var(--radius-pill); }
+    .consent-fraction.full    { background: #e8f5e9; color: var(--fp-success); }
+    .consent-fraction.partial { background: #fff8e1; color: #d97706; }
+    .consent-fraction.none    { background: #fbe9e7; color: var(--fp-error); }
 
     /* Modal */
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(238,237,235,0.7); z-index: 200; align-items: center; justify-content: center; }
@@ -533,8 +567,12 @@
           <div class="hero-count-label">Needs consent</div>
         </div>
         <div class="hero-count">
-          <div class="hero-count-num c-grey" id="hcNoPerson">—</div>
-          <div class="hero-count-label">No person shown</div>
+          <div class="hero-count-num c-orange" id="hcPartial">—</div>
+          <div class="hero-count-label">Partial consent</div>
+        </div>
+        <div class="hero-count">
+          <div class="hero-count-num c-grey" id="hcOrphan">—</div>
+          <div class="hero-count-label">Orphan forms</div>
         </div>
         <div class="hero-count">
           <div class="hero-count-num c-red" id="hcNoImages">—</div>
@@ -589,9 +627,10 @@
           <div class="comp-thead" role="row">
             <div role="columnheader">Project</div>
             <div role="columnheader">Images</div>
-            <div role="columnheader">Consented</div>
-            <div role="columnheader">Needs consent</div>
-            <div role="columnheader">No person</div>
+            <div role="columnheader">Persons</div>
+            <div role="columnheader">Matched</div>
+            <div role="columnheader">Partial</div>
+            <div role="columnheader">Orphan forms</div>
             <div role="columnheader">Compliance</div>
             <div role="columnheader">Status</div>
           </div>
@@ -644,6 +683,20 @@
     </button>
   </div>
 
+  <!-- Project audit summary bar -->
+  <div class="audit-bar" id="auditBar" style="display:none">
+    <div class="audit-stats">
+      <span class="audit-stat" id="auStat"></span>
+    </div>
+    <div class="audit-actions">
+      <span class="audit-scanned" id="auScanned"></span>
+      <button class="btn btn-ghost btn-sm" id="rescanBtn" onclick="rescanProject()">
+        <span class="material-icons-round" style="font-size:14px">refresh</span>
+        Rescan
+      </button>
+    </div>
+  </div>
+
   <!-- No consent notice -->
   <div class="no-consent-notice" id="noConsentNotice" style="display:none">
     <span class="material-icons-round">info</span>
@@ -685,7 +738,15 @@
     </div>
   </div>
 
-  <!-- Filters -->
+  <!-- View tabs -->
+  <div class="view-tabs" id="viewTabs" style="display:none">
+    <button class="view-tab active" id="vtAll"     onclick="switchViewTab('all',this)">All photos</button>
+    <button class="view-tab" id="vtOrphan"         onclick="switchViewTab('orphan',this)">
+      Orphan forms <span class="filter-count" id="fc-orphan-tab">0</span>
+    </button>
+  </div>
+
+  <!-- Filters (shown only in All photos tab) -->
   <div class="filters" id="filtersBar" style="display:none">
     <button class="filter-btn active" onclick="setFilter('all',this)">All <span class="filter-count" id="fc-all">0</span></button>
     <button class="filter-btn" onclick="setFilter('auto',this)">AUTO <span class="filter-count" id="fc-auto">0</span></button>
@@ -780,26 +841,38 @@
     document.getElementById('heroBarFill').style.width  = pct + '%';
     document.getElementById('heroRing').style.background =
       `conic-gradient(var(--fp-primary) ${pct}%, var(--fp-secondary-25) 0%)`;
-    document.getElementById('hcTotal').textContent    = (t.total_images  || 0).toLocaleString();
-    document.getElementById('hcConsent').textContent  = (t.with_consent  || 0).toLocaleString();
-    document.getElementById('hcNeeds').textContent    = (t.needs_consent || 0).toLocaleString();
-    document.getElementById('hcNoPerson').textContent = (t.no_person     || 0).toLocaleString();
-    document.getElementById('hcNoImages').textContent = (t.no_images     || 0).toLocaleString();
-    document.getElementById('heroSub').textContent    =
-      `${(t.with_consent||0).toLocaleString()} of ${(t.total_images||0).toLocaleString()} images have a confirmed consent PDF.`;
+    document.getElementById('hcTotal').textContent   = (t.total_images  || 0).toLocaleString();
+    document.getElementById('hcConsent').textContent = (t.with_consent  || 0).toLocaleString();
+    document.getElementById('hcNeeds').textContent   = (t.needs_consent || 0).toLocaleString();
+    document.getElementById('hcPartial').textContent = (t.partial_count || 0).toLocaleString();
+    document.getElementById('hcOrphan').textContent  = (t.orphan_forms  || 0).toLocaleString();
+    document.getElementById('hcNoImages').textContent = (t.no_images    || 0).toLocaleString();
+    const tracked = (t.with_consent || 0) + (t.needs_consent || 0);
+    document.getElementById('heroSub').textContent =
+      `${(t.persons_matched||0).toLocaleString()} of ${(t.persons_total||0).toLocaleString()} persons consented across ${tracked.toLocaleString()} tracked images.`;
   }
 
   function recomputeLiveHero() {
-    const rows = Object.values(_liveData).filter(r => r.status === 'done');
-    const total   = rows.reduce((s,r) => s + (r.total_images  || 0), 0);
-    const consent = rows.reduce((s,r) => s + (r.with_consent  || 0), 0);
-    const needs   = rows.reduce((s,r) => s + (r.needs_consent || 0), 0);
-    const nop     = rows.reduce((s,r) => s + (r.no_person     || 0), 0);
+    const rows    = Object.values(_liveData).filter(r => r.status === 'done');
+    const total   = rows.reduce((s,r) => s + (r.total_images   || 0), 0);
+    const consent = rows.reduce((s,r) => s + (r.with_consent   || 0), 0);
+    const needs   = rows.reduce((s,r) => s + (r.needs_consent  || 0), 0);
+    const partial = rows.reduce((s,r) => s + (r.partial_count  || 0), 0);
+    const orphan  = rows.reduce((s,r) => s + (r.orphan_forms   || 0), 0);
     const noImg   = rows.filter(r => (r.total_images || 0) === 0).length;
+    const personsTotal   = rows.reduce((s,r) => s + (r.persons_total   || 0), 0);
+    const personsMatched = rows.reduce((s,r) => s + (r.persons_matched || 0), 0);
+    const tracked = consent + needs;
     renderComplianceHero({
-      total_images: total, with_consent: consent,
-      needs_consent: needs, no_person: nop, no_images: noImg,
-      compliance_pct: total ? +(consent / total * 100).toFixed(1) : 0,
+      total_images:    total,
+      with_consent:    consent,
+      needs_consent:   needs,
+      partial_count:   partial,
+      orphan_forms:    orphan,
+      no_images:       noImg,
+      persons_total:   personsTotal,
+      persons_matched: personsMatched,
+      compliance_pct:  tracked ? +(consent / tracked * 100).toFixed(1) : 0,
     });
   }
 
@@ -897,17 +970,25 @@
       onkeydown="if(event.key==='Enter'||event.key===' ')openProjectMatching('${pid}','${fid}')"
       aria-label="Open project ${pid} matching"` : `class="comp-row" role="row"`;
 
+    const personsTotal   = p.persons_total   || 0;
+    const personsMatched = p.persons_matched || 0;
+    const partial        = p.partial_count   || 0;
+    const orphan         = p.orphan_forms    || 0;
+    const tracked        = (p.with_consent || 0) + (p.needs_consent || 0);
+    const pctPersons     = personsTotal ? Math.round(personsMatched / personsTotal * 100) : pct;
+
     return `<div ${clickable} data-folder-id="${fid}">
       <div role="cell"><span class="cr-name">${name}</span>${pid ? `<span class="cr-pid" aria-label="Project ID">${pid}</span>` : ''}</div>
       <div role="cell" class="cr-num">${total}</div>
-      <div role="cell" class="cr-num green" aria-label="${p.with_consent||0} consented">${p.with_consent || 0}</div>
-      <div role="cell" class="cr-num orange" aria-label="${p.needs_consent||0} need consent">${p.needs_consent || 0}</div>
-      <div role="cell" class="cr-num grey" aria-label="${p.no_person||0} no person shown">${p.no_person || 0}</div>
-      <div role="cell" class="mini-bar-wrap" aria-label="${pct}% compliance">
-        <div class="mini-bar" role="progressbar" aria-valuenow="${pct}" aria-valuemin="0" aria-valuemax="100">
-          <div class="mini-fill" style="width:${pct}%"></div>
+      <div role="cell" class="cr-num" aria-label="${personsTotal} persons named">${personsTotal || '—'}</div>
+      <div role="cell" class="cr-num green" aria-label="${personsMatched} persons matched">${personsTotal ? personsMatched : '—'}</div>
+      <div role="cell" class="cr-num${partial ? ' orange' : ' grey'}" aria-label="${partial} partial">${partial || '—'}</div>
+      <div role="cell" class="cr-num${orphan ? ' orange' : ' grey'}" aria-label="${orphan} orphan forms">${orphan || '—'}</div>
+      <div role="cell" class="mini-bar-wrap" aria-label="${pctPersons}% compliance">
+        <div class="mini-bar" role="progressbar" aria-valuenow="${pctPersons}" aria-valuemin="0" aria-valuemax="100">
+          <div class="mini-fill" style="width:${pctPersons}%"></div>
         </div>
-        <span class="mini-pct">${pct}%</span>
+        <span class="mini-pct">${pctPersons}%</span>
       </div>
       <div role="cell">${statusBadge}</div>
     </div>`;
@@ -1094,15 +1175,35 @@
   async function confirmRescan() {
     const ok = await showConfirm(
       'Delete scan data and re-scan?',
-      'This will delete all cached scan data and re-scan every project. This cannot be undone.',
+      'This will delete all cached compliance and matching data and re-scan every project. This cannot be undone.',
       'Delete and re-scan'
     );
     if (!ok) return;
     document.getElementById('btnScan').disabled = true;
     await fetch('/api/compliance/reset', {method: 'POST'});
+
+    // Clear both compliance table state and matching cache state
     _liveData = {}; _allCompRows = []; _currentPage = 1;
+    allMatches = []; _orphanForms = [];
     renderTablePage();
-    renderComplianceHero({ total_images:0, with_consent:0, needs_consent:0, no_person:0, no_images:0, compliance_pct:0 });
+    renderComplianceHero({
+      total_images: 0, with_consent: 0, needs_consent: 0,
+      partial_count: 0, orphan_forms: 0, no_images: 0,
+      persons_total: 0, persons_matched: 0, compliance_pct: 0,
+    });
+
+    // If a project is open in the matching view, clear it so ops sees stale-data warning on next open
+    if (currentProjectId) {
+      document.getElementById('auditBar').style.display  = 'none';
+      document.getElementById('viewTabs').style.display  = 'none';
+      document.getElementById('dashboard').style.display = 'none';
+      document.getElementById('filtersBar').style.display = 'none';
+      document.getElementById('tableContainer').innerHTML = `<div class="state-box">
+        <div class="icon"><span class="material-icons-round" style="font-size:40px">manage_search</span></div>
+        <p>Cache cleared. Run matching again to refresh results.</p>
+      </div>`;
+    }
+
     document.getElementById('btnScan').disabled = false;
     startScan(false);
   }
@@ -1275,11 +1376,138 @@
     setTimeout(cb, 350);
   }
 
-  // Load matches
+  let _currentViewTab = 'all';
+  let _orphanForms    = [];
+
+  function switchViewTab(tab, btn) {
+    _currentViewTab = tab;
+    document.querySelectorAll('.view-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    if (tab === 'orphan') {
+      document.getElementById('filtersBar').style.display = 'none';
+      renderOrphanForms(_orphanForms);
+    } else {
+      document.getElementById('filtersBar').style.display = 'flex';
+      renderTable(allMatches);
+    }
+  }
+
+  function renderOrphanForms(forms) {
+    const container = document.getElementById('tableContainer');
+    if (!forms.length) {
+      container.innerHTML = `<div class="state-box">
+        <div class="icon"><span class="material-icons-round" style="font-size:36px">check_circle_outline</span></div>
+        <p>No orphan forms — every consent PDF matched at least one photo.</p>
+      </div>`;
+      return;
+    }
+    const rows = forms.map(f => {
+      const scoreClass = f.best_score >= 40 ? 'high' : 'low';
+      const thumb = f.best_image_thumb
+        ? `<img class="orphan-thumb" src="${f.best_image_thumb}" loading="lazy" alt="" />`
+        : `<div class="orphan-thumb-ph"><span class="material-icons-round" style="font-size:14px">image</span></div>`;
+      const formName = f.is_image_consent
+        ? `<span class="material-icons-round" style="font-size:11px;vertical-align:middle;opacity:.6;margin-right:3px">image</span>${f.pdf_name}`
+        : `<a class="pdf-link" href="${f.pdf_url}" target="_blank">${f.pdf_name}</a>`;
+      const scoreLabel = f.best_score > 0
+        ? `<span class="orphan-score ${scoreClass}">${f.best_score.toFixed(0)}%</span>`
+        : `<span style="color:var(--fp-secondary-50)">—</span>`;
+      return `<tr>
+        <td>${formName}</td>
+        <td>${thumb}</td>
+        <td><span class="cell-primary" style="font-size:var(--fs-xs)">${truncate(f.best_image_name,32)}</span></td>
+        <td>${scoreLabel}</td>
+        <td style="color:var(--fp-secondary-50);font-size:10px">${f.best_score >= 40 ? 'Likely misnamed — check spelling' : 'No close match found'}</td>
+      </tr>`;
+    }).join('');
+    container.innerHTML = `<div class="orphan-table-wrap">
+      <table class="orphan-table">
+        <thead><tr>
+          <th>Consent form</th>
+          <th></th>
+          <th>Closest photo</th>
+          <th>Score</th>
+          <th>Hint</th>
+        </tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>`;
+  }
+
+  // Load matches — tries cache first, falls back to live scan
   async function loadMatches() {
     const pid = _selectedProjectId;
     if (!pid) return;
     currentProjectId = pid;
+    _resetMatchingUI();
+
+    try {
+      // Try cache first
+      const cached = await fetch(`/api/matches/${pid}/cached`);
+      if (cached.ok) {
+        const data = await cached.json();
+        completeProgress(() => _renderMatchData(data, data.scanned_at));
+        return;
+      }
+    } catch(_) { /* fall through to live scan */ }
+
+    // No cache — run live scan and save to cache
+    try {
+      const res = await fetch(`/api/matches/${pid}/scan`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          album_id:         _selectedAlbumId,
+          docs_album_id:    _selectedDocsAlbumId,
+          consent_album_id: _selectedConsentAlbumId,
+          folder_id:        pid,
+          project_name:     (_allProjects.find(p => p.project_id === pid) || {}).name || '',
+        }),
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Error'); }
+      const data = await res.json();
+      completeProgress(() => _renderMatchData(data, data.scanned_at));
+    } catch(e) {
+      clearTimeout(_progressTimer);
+      document.getElementById('tableContainer').innerHTML =
+        `<div class="state-box"><div class="icon"><span class="material-icons-round" style="font-size:36px">error_outline</span></div><p>${e.message}</p></div>`;
+    }
+  }
+
+  async function rescanProject() {
+    const pid = _selectedProjectId;
+    if (!pid) return;
+    currentProjectId = pid;
+    _resetMatchingUI();
+    document.getElementById('rescanBtn').disabled = true;
+
+    try {
+      const res = await fetch(`/api/matches/${pid}/scan`, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+          album_id:         _selectedAlbumId,
+          docs_album_id:    _selectedDocsAlbumId,
+          consent_album_id: _selectedConsentAlbumId,
+          folder_id:        pid,
+          project_name:     (_allProjects.find(p => p.project_id === pid) || {}).name || '',
+        }),
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Error'); }
+      const data = await res.json();
+      completeProgress(() => _renderMatchData(data, data.scanned_at));
+    } catch(e) {
+      clearTimeout(_progressTimer);
+      document.getElementById('tableContainer').innerHTML =
+        `<div class="state-box"><div class="icon"><span class="material-icons-round" style="font-size:36px">error_outline</span></div><p>${e.message}</p></div>`;
+    } finally {
+      document.getElementById('rescanBtn').disabled = false;
+    }
+  }
+
+  function _resetMatchingUI() {
+    _currentViewTab = 'all';
+    _orphanForms    = [];
     document.getElementById('tableContainer').innerHTML =
       `<div class="state-box">
         <div class="match-progress">
@@ -1291,40 +1519,80 @@
         </div>
       </div>`;
     startProgress();
-    document.getElementById('dashboard').style.display = 'none';
-    document.getElementById('filtersBar').style.display = 'none';
-    document.getElementById('bulkBtn').style.display = 'none';
+    document.getElementById('auditBar').style.display    = 'none';
+    document.getElementById('viewTabs').style.display    = 'none';
+    document.getElementById('dashboard').style.display   = 'none';
+    document.getElementById('filtersBar').style.display  = 'none';
+    document.getElementById('bulkBtn').style.display     = 'none';
     document.getElementById('noConsentNotice').style.display = 'none';
-    try {
-      const params = new URLSearchParams();
-      if (_selectedAlbumId)        params.set('album_id',         _selectedAlbumId);
-      if (_selectedDocsAlbumId)    params.set('docs_album_id',    _selectedDocsAlbumId);
-      if (_selectedConsentAlbumId) params.set('consent_album_id', _selectedConsentAlbumId);
-      const albumParam = params.toString() ? '?' + params.toString() : '';
-      const res = await fetch(`/api/matches/${pid}${albumParam}`);
-      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Error'); }
-      const data = await res.json();
-      completeProgress(() => {
-        allMatches = data.matches;
-        renderStats(data.stats);
-        renderFilterCounts(allMatches);
-        renderTable(allMatches);
-        document.getElementById('dashboard').style.display = 'grid';
-        document.getElementById('filtersBar').style.display = 'flex';
-        if (data.stats.auto_ready > 0)
-          document.getElementById('bulkBtn').style.display = 'inline-flex';
-        if (data.stats.no_consent_found > 0) {
-          document.getElementById('noConsentMsg').textContent =
-            `${data.stats.no_consent_found} images have a known person but no matching consent PDF found. ` +
-            `${data.stats.no_person_meta} images have no "Person Shown" metadata.`;
-          document.getElementById('noConsentNotice').style.display = 'flex';
-        }
-      });
-    } catch(e) {
-      clearTimeout(_progressTimer);
-      document.getElementById('tableContainer').innerHTML =
-        `<div class="state-box"><div class="icon"><span class="material-icons-round" style="font-size:36px">error_outline</span></div><p>${e.message}</p></div>`;
+    // Reset tab buttons
+    document.getElementById('vtAll').classList.add('active');
+    document.getElementById('vtOrphan').classList.remove('active');
+  }
+
+  function _renderMatchData(data, scannedAt) {
+    const stats = data.stats || {};
+    allMatches  = data.matches || [];
+    _orphanForms = data.orphan_forms || [];
+
+    renderStats(stats);
+    renderAuditBar(stats, scannedAt);
+    renderFilterCounts(allMatches);
+
+    // Update orphan tab badge
+    document.getElementById('fc-orphan-tab').textContent = _orphanForms.length;
+
+    // Show tabs only when there's something to show
+    document.getElementById('viewTabs').style.display = 'flex';
+
+    // Render the active tab
+    if (_currentViewTab === 'orphan') {
+      renderOrphanForms(_orphanForms);
+    } else {
+      renderTable(allMatches);
+      document.getElementById('filtersBar').style.display = 'flex';
     }
+
+    document.getElementById('dashboard').style.display = 'grid';
+    if (stats.auto_ready > 0)
+      document.getElementById('bulkBtn').style.display = 'inline-flex';
+    if (stats.no_consent_found > 0) {
+      document.getElementById('noConsentMsg').textContent =
+        `${stats.no_consent_found} images have a known person but no matching consent PDF found. ` +
+        `${stats.no_person_meta} images have no "Person Shown" metadata.`;
+      document.getElementById('noConsentNotice').style.display = 'flex';
+    }
+  }
+
+  function renderAuditBar(s, scannedAt) {
+    const total   = s.persons_total   || 0;
+    const matched = s.persons_matched || 0;
+    const partial = s.partial_count   || 0;
+    const bar     = document.getElementById('auditBar');
+
+    if (!total) { bar.style.display = 'none'; return; }
+
+    const gap     = total - matched;
+    const okClass = gap === 0 ? 'ok' : 'warn';
+    bar.querySelector('#auStat').innerHTML = [
+      `<span class="audit-stat ${okClass}"><strong>${matched}/${total}</strong> persons consented</span>`,
+      partial ? `<span class="audit-stat warn"><strong>${partial}</strong> partial</span>` : '',
+      (s.orphan_forms || 0) ? `<span class="audit-stat warn"><strong>${s.orphan_forms}</strong> orphan forms</span>` : '',
+    ].filter(Boolean).join('<span style="color:var(--fp-secondary-25)">·</span>');
+
+    if (scannedAt) {
+      const ago = _timeAgo(new Date(scannedAt));
+      document.getElementById('auScanned').textContent = `Last scanned ${ago}`;
+    }
+    bar.style.display = 'flex';
+  }
+
+  function _timeAgo(date) {
+    const diff = Math.floor((Date.now() - date) / 1000);
+    if (diff < 60)   return 'just now';
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+    if (diff < 86400)return `${Math.floor(diff/3600)}h ago`;
+    return `${Math.floor(diff/86400)}d ago`;
   }
 
   // Stats
@@ -1419,7 +1687,25 @@
              </span>`
           : `<a class="pdf-link" href="${bm.pdf_url}" target="_blank" title="${bm.pdf_name}">${bm.pdf_name}</a>`)
       : `<span style="color:var(--fp-secondary-50); font-size:var(--fs-xs)">No consent found</span>`;
-    const personHtml = m.person_shown ? `<div class="cell-primary" title="${m.person_shown}">${m.person_shown}</div>` : `<div style="color:var(--fp-secondary-50); font-size:var(--fs-xs); font-style:italic">No metadata</div>`;
+    const persons = m.persons || [];
+    let personHtml;
+    if (!persons.length) {
+      personHtml = `<div style="color:var(--fp-secondary-50); font-size:var(--fs-xs); font-style:italic">No metadata</div>`;
+    } else if (persons.length === 1) {
+      personHtml = `<div class="cell-primary">${persons[0]}</div>`;
+    } else {
+      const matchedCount = bm && bm.score >= 60 ? persons.length : 0; // best-effort for display
+      const fracClass = matchedCount === persons.length ? 'full' : matchedCount > 0 ? 'partial' : 'none';
+      personHtml = `<div class="person-list">` +
+        persons.map((p, i) => {
+          const matched = bm && bm.score >= 60 && i === 0; // first person is the best match
+          return `<div class="person-row">
+            <span class="material-icons-round ${matched ? 'pi-check' : 'pi-miss'}">${matched ? 'check_circle' : 'radio_button_unchecked'}</span>
+            <span>${p}</span>
+          </div>`;
+        }).join('') +
+        `</div>`;
+    }
     const confirmActive = m.decision === 'confirmed' ? 'active' : '';
     const rejectActive  = m.decision === 'rejected'  ? 'active' : '';
     return `
