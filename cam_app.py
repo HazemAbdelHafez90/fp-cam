@@ -543,6 +543,7 @@ def debug_project(project_id: str):
 
 
 _COMPLIANCE_TABLE = "project_compliance"
+_MATCHES_TABLE    = "project_matches"
 
 
 def _get_confirmed_image_ids(image_ids: list) -> set:
@@ -674,22 +675,73 @@ def compliance_status():
             "error": "Table 'project_compliance' not found. Run this SQL in Supabase:",
             "sql": (
                 "create table project_compliance (\n"
-                "  folder_id     text primary key,\n"
-                "  project_name  text,\n"
-                "  project_id    text,\n"
-                "  total_images  int  default 0,\n"
-                "  with_consent  int  default 0,\n"
-                "  needs_consent int  default 0,\n"
-                "  no_person     int  default 0,\n"
-                "  status        text default 'pending',\n"
-                "  scanned_at    timestamptz,\n"
-                "  error_msg     text\n"
+                "  folder_id       text primary key,\n"
+                "  project_name    text,\n"
+                "  project_id      text,\n"
+                "  total_images    int  default 0,\n"
+                "  with_consent    int  default 0,\n"
+                "  needs_consent   int  default 0,\n"
+                "  no_person       int  default 0,\n"
+                "  persons_total   int  default 0,\n"
+                "  persons_matched int  default 0,\n"
+                "  partial_count   int  default 0,\n"
+                "  orphan_forms    int  default 0,\n"
+                "  status          text default 'pending',\n"
+                "  scanned_at      timestamptz,\n"
+                "  error_msg       text\n"
                 ");\n"
-                "alter table project_compliance disable row level security;"
+                "alter table project_compliance disable row level security;\n\n"
+                "create table if not exists project_matches (\n"
+                "  project_id      text primary key,\n"
+                "  folder_id       text,\n"
+                "  project_name    text,\n"
+                "  results_json    jsonb,\n"
+                "  persons_total   int  default 0,\n"
+                "  persons_matched int  default 0,\n"
+                "  partial_count   int  default 0,\n"
+                "  orphan_forms    int  default 0,\n"
+                "  status          text default 'pending',\n"
+                "  scanned_at      timestamptz,\n"
+                "  error_msg       text\n"
+                ");\n"
+                "alter table project_matches disable row level security;"
             ),
         }
     if not r.ok:
         return {"ok": False, "error": f"Supabase {r.status_code}: {r.text}"}
+
+    # Check that new columns exist (migration applied)
+    r2 = requests.get(
+        f"{_SB_URL}/rest/v1/{_COMPLIANCE_TABLE}?select=persons_total&limit=1",
+        headers=_sb_headers(), timeout=8,
+    )
+    if not r2.ok:
+        return {
+            "ok": False,
+            "error": "Schema migration needed. Run this SQL in Supabase:",
+            "sql": (
+                "alter table project_compliance\n"
+                "  add column if not exists persons_total   int default 0,\n"
+                "  add column if not exists persons_matched int default 0,\n"
+                "  add column if not exists partial_count   int default 0,\n"
+                "  add column if not exists orphan_forms    int default 0;\n\n"
+                "create table if not exists project_matches (\n"
+                "  project_id      text primary key,\n"
+                "  folder_id       text,\n"
+                "  project_name    text,\n"
+                "  results_json    jsonb,\n"
+                "  persons_total   int  default 0,\n"
+                "  persons_matched int  default 0,\n"
+                "  partial_count   int  default 0,\n"
+                "  orphan_forms    int  default 0,\n"
+                "  status          text default 'pending',\n"
+                "  scanned_at      timestamptz,\n"
+                "  error_msg       text\n"
+                ");\n"
+                "alter table project_matches disable row level security;"
+            ),
+        }
+
     return {"ok": True, "row_count": len(r.json())}
 
 
