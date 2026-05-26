@@ -206,6 +206,25 @@ def link_related_file(image_id: str, image_name: str, doc_id: str, doc_name: str
     return resp.status_code == 200
 
 
+def get_document_related_image_ids(doc_id: str) -> set[str]:
+    """Return the set of image IDs linked to a document via Canto Related Files."""
+    try:
+        resp = _request("GET", f"{BASE_URL}/api/v1/document/{doc_id}")
+        if not resp.ok:
+            return set()
+        data = resp.json()
+        # Canto stores related items under different keys depending on version
+        related = (
+            data.get("relatedContents") or
+            data.get("related") or
+            data.get("relatedFiles") or
+            []
+        )
+        return {item["id"] for item in related if item.get("scheme") == "image"}
+    except Exception:
+        return set()
+
+
 def update_consent_field(image_id: str, pdf_id: str) -> bool:
     """Legacy — kept for reference but writes don't work via API v1."""
     return False

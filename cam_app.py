@@ -1000,8 +1000,18 @@ def scan_matches(project_id: str, body: dict):
                         "best_image_canto_url": r.get("image_canto_url", ""),
                     }
 
+        # Candidates not matched by algorithm or decision
+        candidate_orphans = [v for k, v in pdf_candidate_map.items() if k not in matched_pdf_ids]
+
+        # Final filter: exclude any PDF that already has a related image in Canto
+        # (i.e. it was linked directly in Canto, not through CAM)
+        def _has_canto_related_image(pdf_entry: dict) -> bool:
+            if pdf_entry.get("is_image_consent"):
+                return False  # scanned image forms are never documents in Canto
+            return bool(canto.get_document_related_image_ids(pdf_entry["pdf_id"]))
+
         orphan_list = sorted(
-            [v for k, v in pdf_candidate_map.items() if k not in matched_pdf_ids],
+            [v for v in candidate_orphans if not _has_canto_related_image(v)],
             key=lambda x: x["best_score"], reverse=True,
         )
 
