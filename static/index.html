@@ -422,25 +422,12 @@
     .view-tab.active { color: var(--fp-primary); border-bottom-color: var(--fp-primary); }
     .view-tab .filter-count { background: var(--fp-secondary-10, #f0f0f0); color: var(--fp-secondary-75); border-radius: 10px; padding: 0 6px; font-size: 10px; }
     .view-tab.active .filter-count { background: var(--fp-light-primary); color: var(--fp-primary); }
-    .orphan-table-wrap { padding: 0 32px 32px; }
-    .orphan-notice { margin: 16px 32px 0; padding: 10px 14px; background: rgba(227,172,60,0.08); border: 1px solid rgba(227,172,60,0.25); border-radius: 6px; font-size: var(--fs-xs); color: var(--fp-secondary-75); display: flex; align-items: center; gap: 8px; }
+    .orphan-notice { margin: 16px 0 0; padding: 10px 14px; background: rgba(227,172,60,0.08); border: 1px solid rgba(227,172,60,0.25); border-radius: 6px; font-size: var(--fs-xs); color: var(--fp-secondary-75); display: flex; align-items: center; gap: 8px; }
     .orphan-notice .material-icons-round { font-size: 15px; color: var(--fp-warning); flex-shrink: 0; }
-    .orphan-table { width: 100%; border-collapse: collapse; font-size: var(--fs-xs); }
-    .orphan-table th { text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--fp-secondary-25); color: var(--fp-secondary-75); font-weight: 700; font-size: 10px; text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; background: var(--fp-secondary-bg); }
-    .orphan-table td { padding: 11px 14px; border-bottom: 1px solid var(--fp-secondary-10, #f4f4f4); vertical-align: middle; }
-    .orphan-table tr:last-child td { border-bottom: none; }
-    .orphan-table tr:hover td { background: var(--fp-secondary-bg); }
-    .orphan-score { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-size: 13px; }
+    .orphan-score { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
     .orphan-score.high { color: var(--fp-warning, #e3ac3c); }
     .orphan-score.med  { color: #e07020; }
     .orphan-score.low  { color: var(--fp-secondary-50); }
-    .orphan-thumb { width: 48px; height: 48px; object-fit: cover; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.12); }
-    .orphan-thumb-ph { width: 48px; height: 48px; background: var(--fp-secondary-10,#f4f4f4); border-radius: 4px; display:flex; align-items:center; justify-content:center; color:var(--fp-secondary-50); }
-    .orphan-form-name { font-weight: 600; color: var(--fp-darkgrey); font-size: var(--fs-xs); }
-    .orphan-form-name a { color: var(--fp-primary); text-decoration: none; font-weight: 600; }
-    .orphan-form-name a:hover { text-decoration: underline; }
-    .orphan-photo-name { font-size: var(--fs-xs); color: var(--fp-darkgrey); font-weight: 500; }
-    .orphan-hint { font-size: 11px; color: var(--fp-secondary-50); }
     .audit-bar {
       display: flex; align-items: center; justify-content: space-between;
       gap: 16px; margin: 12px 32px 0; padding: 12px 18px;
@@ -1429,39 +1416,42 @@
       const score = f.best_score || 0;
       const scoreClass = score >= 70 ? 'high' : score >= 40 ? 'med' : 'low';
       const thumb = f.best_image_thumb
-        ? `<img class="orphan-thumb" src="${f.best_image_thumb}" loading="lazy" alt="" />`
-        : `<div class="orphan-thumb-ph"><span class="material-icons-round" style="font-size:16px">image</span></div>`;
-      const formName = f.is_image_consent
-        ? `<span class="orphan-form-name"><span class="material-icons-round" style="font-size:11px;vertical-align:middle;opacity:.5;margin-right:3px">image</span>${f.pdf_name}</span>`
-        : `<span class="orphan-form-name"><a href="${f.pdf_url}" target="_blank">${f.pdf_name}</a></span>`;
+        ? `<img class="thumb" src="${f.best_image_thumb}" loading="lazy" alt="" />`
+        : `<div class="thumb-ph"><span class="material-icons-round">image</span></div>`;
+      const pdfLabel = f.is_image_consent
+        ? `<span class="pdf-link" style="cursor:default"><span class="material-icons-round" style="font-size:11px;vertical-align:middle;margin-right:3px;opacity:.6">image</span>${f.pdf_name}</span>`
+        : `<a class="pdf-link" href="${f.pdf_url}" target="_blank" title="${f.pdf_name}">${f.pdf_name}</a>`;
       const scoreLabel = score > 0
-        ? `<span class="orphan-score ${scoreClass}">${score.toFixed(0)}%</span>`
+        ? `<span class="score-val">${score.toFixed(0)}%</span> <span class="orphan-score ${scoreClass}" style="font-size:10px;font-weight:700;border:1.5px solid currentColor;border-radius:99px;padding:1px 7px">${score >= 70 ? 'HIGH' : score >= 40 ? 'MED' : 'LOW'}</span>`
         : `<span style="color:var(--fp-secondary-50)">—</span>`;
       const hint = score >= 70 ? 'Likely misnamed — check spelling'
                  : score >= 40 ? 'Possible match — verify manually'
                  : 'No close match found';
-      const photoCell = f.best_image_name
-        ? (f.best_image_canto_url
-            ? `<a href="${f.best_image_canto_url}" target="_blank" style="display:flex;align-items:center;gap:10px;text-decoration:none">${thumb}<span class="orphan-photo-name" style="text-decoration:underline;text-underline-offset:2px">${truncate(f.best_image_name, 36)}</span></a>`
-            : `<div style="display:flex;align-items:center;gap:10px">${thumb}<span class="orphan-photo-name">${truncate(f.best_image_name, 36)}</span></div>`)
-        : `<span style="color:var(--fp-secondary-50)">—</span>`;
+      const photoName = f.best_image_name
+        ? `<div class="cell-primary" title="${f.best_image_name}">${truncate(f.best_image_name, 28)}</div>`
+        : `<span style="color:var(--fp-secondary-50);font-size:var(--fs-xs)">No candidate</span>`;
+      const thumbCell = f.best_image_canto_url
+        ? `<a href="${f.best_image_canto_url}" target="_blank" title="Open in Canto">${thumb}</a>`
+        : thumb;
       return `<tr>
-        <td>${formName}</td>
-        <td>${photoCell}</td>
+        <td>${thumbCell}</td>
+        <td>${photoName}</td>
+        <td>${pdfLabel}</td>
         <td>${scoreLabel}</td>
-        <td class="orphan-hint">${hint}</td>
+        <td style="color:var(--fp-secondary-50);font-size:11px">${hint}</td>
       </tr>`;
     }).join('');
     container.innerHTML = `
-      <div class="orphan-notice">
+      <div class="orphan-notice" style="margin:16px 32px 0">
         <span class="material-icons-round">info</span>
-        These consent forms have no matching photo. The "closest photo" column shows the best candidate found — it is <strong>&nbsp;not&nbsp;</strong> a confirmed match.
+        These consent forms have no matching photo. The photo shown is the closest candidate only — <strong>not</strong> a confirmed match.
       </div>
-      <div class="orphan-table-wrap" style="margin-top:12px">
-        <table class="orphan-table">
+      <div class="table-wrap">
+        <table>
           <thead><tr>
-            <th>Consent form</th>
+            <th></th>
             <th>Closest photo</th>
+            <th>Consent form</th>
             <th>Similarity</th>
             <th>Hint</th>
           </tr></thead>
