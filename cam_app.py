@@ -588,31 +588,68 @@ def get_compliance():
         raise HTTPException(500, f"Supabase: {r.text}")
     rows = r.json()
 
-    total_images  = sum(p.get("total_images") or 0 for p in rows)
-    with_consent  = sum(p.get("with_consent") or 0 for p in rows)
-    needs_consent = sum(p.get("needs_consent") or 0 for p in rows)
-    no_person     = sum(p.get("no_person") or 0 for p in rows)
-    no_images     = sum(1 for p in rows if (p.get("total_images") or 0) == 0)
+    total_images     = sum(p.get("total_images") or 0 for p in rows)
+    with_consent     = sum(p.get("with_consent") or 0 for p in rows)
+    needs_consent    = sum(p.get("needs_consent") or 0 for p in rows)
+    no_person        = sum(p.get("no_person") or 0 for p in rows)
+    no_images        = sum(1 for p in rows if (p.get("total_images") or 0) == 0)
+    persons_total    = sum(p.get("persons_total") or 0 for p in rows)
+    persons_matched  = sum(p.get("persons_matched") or 0 for p in rows)
+    partial_count    = sum(p.get("partial_count") or 0 for p in rows)
+    orphan_forms     = sum(p.get("orphan_forms") or 0 for p in rows)
+
+    tracked_images = with_consent + needs_consent
+    compliance_pct = round(with_consent / tracked_images * 100, 1) if tracked_images else 0
 
     return {
         "projects": rows,
         "totals": {
-            "total_images":   total_images,
-            "with_consent":   with_consent,
-            "needs_consent":  needs_consent,
-            "no_person":      no_person,
-            "no_images":      no_images,
-            "compliance_pct": round(with_consent / total_images * 100, 1) if total_images else 0,
+            "total_images":    total_images,
+            "with_consent":    with_consent,
+            "needs_consent":   needs_consent,
+            "no_person":       no_person,
+            "no_images":       no_images,
+            "persons_total":   persons_total,
+            "persons_matched": persons_matched,
+            "partial_count":   partial_count,
+            "orphan_forms":    orphan_forms,
+            "compliance_pct":  compliance_pct,
         },
     }
+
+
+def _fetch_pdf_data_for_project(project_id: str, docs_album_id: str = "",
+                                consent_album_id: str = "") -> list[dict]:
+    """Fetch and parse all consent PDFs + scanned images for a project."""
+    if docs_album_id:
+        docs = canto.get_album_documents(docs_album_id)
+        if not docs:
+            docs = canto.get_project_documents(project_id)
+    else:
+        docs = canto.get_project_documents(project_id)
+
+    pdf_data_list = [d for d in (_load_pdf_data(doc) for doc in docs
+                                  if doc.get("name", "").lower().endswith(".pdf"))
+                     if d is not None]
+
+    if consent_album_id:
+        raw_imgs = canto.get_album_images(consent_album_id)
+        pdf_data_list.extend(
+            d for d in (_consent_image_to_pdf_data(img, project_id) for img in raw_imgs)
+            if d is not None
+        )
+
+    return pdf_data_list
 
 
 @app.post("/api/compliance/scan/{folder_id}")
 def scan_project_compliance(folder_id: str, body: dict):
     """Scan one project folder and save results to Supabase. Idempotent — safe to retry."""
-    project_name = body.get("project_name", "")
-    project_id   = body.get("project_id", "")
-    album_id     = body.get("album_id", "")
+    project_name      = body.get("project_name", "")
+    project_id        = body.get("project_id", "")
+    album_id          = body.get("album_id", "")
+    docs_album_id     = body.get("docs_album_id", "")
+    consent_album_id  = body.get("consent_album_id", "")
 
     try:
         if album_id:
@@ -625,26 +662,81 @@ def scan_project_compliance(folder_id: str, body: dict):
         image_ids     = [img["id"] for img in images]
         confirmed_ids = _get_confirmed_image_ids(image_ids)
 
+        pdf_data_list = _fetch_pdf_data_for_project(
+            project_id, docs_album_id, consent_album_id
+        ) if project_id else []
+
+        matched_pdf_ids: set[str] = set()
+
         with_consent = needs_consent = no_person = 0
+        persons_total = persons_matched = partial_count = 0
+
         for img in images:
+            persons = matcher.persons_from_image(img)
+
+            if not persons:
+                no_person += 1
+                continue
+
             if img["id"] in confirmed_ids:
                 with_consent += 1
-            elif matcher.persons_from_image(img):
+                persons_total   += len(persons)
+                persons_matched += len(persons)
+                continue
+
+            if not pdf_data_list:
+                needs_consent += 1
+                persons_total += len(persons)
+                continue
+
+            n_matched = 0
+            for person in persons:
+                persons_total += 1
+                pseudo_img = {**img, "additional": {
+                    **img.get("additional", {}),
+                    "Person Shown in the Image": person,
+                }}
+                best_score = 0.0
+                best_pdf_id = None
+                for pdf_data in pdf_data_list:
+                    result = score_match(pseudo_img, pdf_data)
+                    if result.overall > best_score:
+                        best_score = result.overall
+                        best_pdf_id = pdf_data["_id"]
+
+                if best_score >= 60:
+                    n_matched += 1
+                    persons_matched += 1
+                    if best_pdf_id:
+                        matched_pdf_ids.add(best_pdf_id)
+
+            if n_matched == len(persons):
+                with_consent += 1
+            elif n_matched > 0:
+                partial_count += 1
                 needs_consent += 1
             else:
-                no_person += 1
+                needs_consent += 1
+
+        orphan_forms = sum(
+            1 for pdf in pdf_data_list if pdf["_id"] not in matched_pdf_ids
+        ) if pdf_data_list else 0
 
         row = {
-            "folder_id":    folder_id,
-            "project_name": project_name,
-            "project_id":   project_id or "",
-            "total_images": len(images),
-            "with_consent": with_consent,
-            "needs_consent": needs_consent,
-            "no_person":    no_person,
-            "status":       "done",
-            "scanned_at":   datetime.now(timezone.utc).isoformat(),
-            "error_msg":    None,
+            "folder_id":       folder_id,
+            "project_name":    project_name,
+            "project_id":      project_id or "",
+            "total_images":    len(images),
+            "with_consent":    with_consent,
+            "needs_consent":   needs_consent,
+            "no_person":       no_person,
+            "persons_total":   persons_total,
+            "persons_matched": persons_matched,
+            "partial_count":   partial_count,
+            "orphan_forms":    orphan_forms,
+            "status":          "done",
+            "scanned_at":      datetime.now(timezone.utc).isoformat(),
+            "error_msg":       None,
         }
         db_error = _upsert_compliance_row(row)
         return {**row, "db_error": db_error}
