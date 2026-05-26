@@ -363,9 +363,7 @@
     tr:last-child td { border-bottom: none; }
     tr:hover td { background: var(--fp-secondary-15); }
     tr.confirmed td { background: rgba(88,132,100,0.10); }
-    tr.confirmed td:first-child { border-left: 3px solid var(--fp-success); }
     tr.rejected  td { background: rgba(216,82,82,0.08); }
-    tr.rejected  td:first-child { border-left: 3px solid var(--fp-error); }
     .thumb { width: 60px; height: 42px; object-fit: cover; border-radius: var(--radius-sm); display: block; background: var(--fp-secondary-20); }
     .thumb-ph { width: 60px; height: 42px; border-radius: var(--radius-sm); background: var(--fp-secondary-20); display: flex; align-items: center; justify-content: center; }
     .thumb-ph span { font-size: 18px; color: var(--fp-secondary-50); }
@@ -431,22 +429,21 @@
     .orphan-table tr:last-child td { border-bottom: none; }
     .orphan-table tr:hover td { background: var(--fp-secondary-bg); }
     .orphan-score { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; }
-    .orphan-score.high { color: var(--fp-warning, #d97706); }
+    .orphan-score.high { color: var(--fp-warning, var(--fp-warning)); }
     .orphan-score.low  { color: var(--fp-secondary-50); }
     .orphan-thumb { width: 36px; height: 36px; object-fit: cover; border-radius: 3px; }
     .orphan-thumb-ph { width: 36px; height: 36px; background: var(--fp-secondary-10,#f4f4f4); border-radius: 3px; display:flex; align-items:center; justify-content:center; color:var(--fp-secondary-50); }
     .audit-bar {
       display: flex; align-items: center; justify-content: space-between;
       gap: 16px; margin: 12px 32px 0; padding: 12px 18px;
-      background: var(--fp-white);
-      border: 1px solid var(--fp-secondary-25);
-      border-left: 4px solid var(--fp-warning);
+      background: rgba(227,172,60,0.07);
+      border: 1px solid var(--fp-warning);
       border-radius: var(--radius-sm);
-      box-shadow: var(--shadow-card);
       flex-wrap: wrap;
     }
     .audit-bar.bar-ok {
-      border-left-color: var(--fp-success);
+      background: rgba(88,132,100,0.07);
+      border-color: var(--fp-success);
     }
     .audit-stats { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
     .audit-stat { font-size: var(--fs-sm); color: var(--fp-darkgrey); }
@@ -459,10 +456,10 @@
     .person-list { display: flex; flex-direction: column; gap: 3px; }
     .person-row { display: flex; align-items: center; gap: 5px; font-size: var(--fs-xs); }
     .person-row .pi-check { color: var(--fp-success); font-size: 13px; }
-    .person-row .pi-miss  { color: var(--fp-warning, #d97706); font-size: 13px; }
+    .person-row .pi-miss  { color: var(--fp-warning, var(--fp-warning)); font-size: 13px; }
     .consent-fraction { display: inline-flex; align-items: center; gap: 4px; font-size: var(--fs-xs); font-weight: 700; padding: 2px 7px; border-radius: var(--radius-pill); }
     .consent-fraction.full    { background: #e8f5e9; color: var(--fp-success); }
-    .consent-fraction.partial { background: #fff8e1; color: #d97706; }
+    .consent-fraction.partial { background: #fff8e1; color: var(--fp-warning); }
     .consent-fraction.none    { background: #fbe9e7; color: var(--fp-error); }
 
     /* Modal */
@@ -529,15 +526,6 @@
     .btn-confirm, .btn-reject, .btn-detail { min-height: 30px; }
     .pg-btn { min-height: 30px; min-width: 30px; }
 
-    /* Token-based status colours */
-    :root {
-      --fp-green:        #2a7a4b;
-      --fp-green-bg:     #EDF7F0;
-      --fp-green-border: #A8D5B5;
-      --fp-green-mid:    #3A7A52;
-      --fp-green-dark:   #1E4D2B;
-      --fp-amber:        #7A5500;
-    }
   </style>
 </head>
 <body>
@@ -613,7 +601,7 @@
         <span id="dbErrorTitle">Database error</span>
       </div>
       <div id="dbErrorMsg"></div>
-      <pre id="dbErrorSql" style="display:none; margin-top:10px; background:#fff; border:1px solid var(--fp-secondary-25);
+      <pre id="dbErrorSql" style="display:none; margin-top:10px; background:var(--fp-white); border:1px solid var(--fp-secondary-25);
            border-radius:4px; padding:10px; font-size:11px; white-space:pre-wrap; font-family:var(--font-mono); line-height:1.6;"></pre>
     </div>
 
@@ -653,7 +641,7 @@
             <div role="columnheader">Persons</div>
             <div role="columnheader">Matched</div>
             <div role="columnheader">Partial</div>
-            <div role="columnheader">Orphan forms</div>
+            <div role="columnheader">Orphans</div>
             <div role="columnheader">Compliance</div>
             <div role="columnheader">Status</div>
           </div>
@@ -871,8 +859,13 @@
     document.getElementById('hcOrphan').textContent  = (t.orphan_forms  || 0).toLocaleString();
     document.getElementById('hcNoImages').textContent = (t.no_images    || 0).toLocaleString();
     const tracked = (t.with_consent || 0) + (t.needs_consent || 0);
-    document.getElementById('heroSub').textContent =
-      `${(t.persons_matched||0).toLocaleString()} of ${(t.persons_total||0).toLocaleString()} persons consented across ${tracked.toLocaleString()} tracked images.`;
+    const personsTotal   = t.persons_total   || 0;
+    const personsMatched = t.persons_matched || 0;
+    document.getElementById('heroSub').textContent = personsTotal > 0
+      ? `${personsMatched.toLocaleString()} of ${personsTotal.toLocaleString()} persons consented across ${tracked.toLocaleString()} tracked images.`
+      : tracked > 0
+        ? `${tracked.toLocaleString()} tracked images — run a project scan to see person-level data.`
+        : `Run a scan to see consent coverage across all projects.`;
   }
 
   function recomputeLiveHero() {

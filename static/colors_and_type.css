@@ -58,6 +58,17 @@
     --fp-info:     #214F91;
     --fp-warning:  #E3AC3C;
 
+    /* Extended neutral */
+    --fp-secondary-10: #F5F4F2;
+
+    /* Status palette */
+    --fp-green:        #2a7a4b;
+    --fp-green-bg:     #EDF7F0;
+    --fp-green-border: #A8D5B5;
+    --fp-green-mid:    #3A7A52;
+    --fp-green-dark:   #1E4D2B;
+    --fp-amber:        #7A5500;
+
     /* ---------- Semantic foreground / background aliases ---------- */
     --fg-1:        var(--fp-darkgrey);       /* Primary text */
     --fg-2:        var(--fp-secondary-100);  /* Secondary text */
