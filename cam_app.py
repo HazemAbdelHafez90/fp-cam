@@ -1003,9 +1003,10 @@ def scan_matches(project_id: str, body: dict):
                         "pdf_url":          c.get("pdf_url", ""),
                         "is_image_consent": c.get("is_image_consent", False),
                         "best_score":       c["score"],
-                        "best_image_id":    r["image_id"],
-                        "best_image_name":  r["image_name"],
-                        "best_image_thumb": r.get("image_thumb", ""),
+                        "best_image_id":       r["image_id"],
+                        "best_image_name":     r["image_name"],
+                        "best_image_thumb":    r.get("image_thumb", ""),
+                        "best_image_canto_url": r.get("image_canto_url", ""),
                     }
 
         orphan_list = sorted(

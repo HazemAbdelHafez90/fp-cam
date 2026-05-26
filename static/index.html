@@ -1441,7 +1441,9 @@
                  : score >= 40 ? 'Possible match — verify manually'
                  : 'No close match found';
       const photoCell = f.best_image_name
-        ? `<div style="display:flex;align-items:center;gap:10px">${thumb}<span class="orphan-photo-name">${truncate(f.best_image_name, 36)}</span></div>`
+        ? (f.best_image_canto_url
+            ? `<a href="${f.best_image_canto_url}" target="_blank" style="display:flex;align-items:center;gap:10px;text-decoration:none">${thumb}<span class="orphan-photo-name" style="text-decoration:underline;text-underline-offset:2px">${truncate(f.best_image_name, 36)}</span></a>`
+            : `<div style="display:flex;align-items:center;gap:10px">${thumb}<span class="orphan-photo-name">${truncate(f.best_image_name, 36)}</span></div>`)
         : `<span style="color:var(--fp-secondary-50)">—</span>`;
       return `<tr>
         <td>${formName}</td>
