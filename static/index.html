@@ -1531,9 +1531,14 @@
   }
 
   function _renderMatchData(data, scannedAt) {
-    const stats = data.stats || {};
-    allMatches  = data.matches || [];
+    allMatches   = data.matches || [];
     _orphanForms = data.orphan_forms || [];
+
+    // Merge cached person-level stats with stats computed live from matches array.
+    // When loading from cache, data.stats only has persons_*/orphan_forms;
+    // the dashboard cards (total, confirmed, auto_ready …) must be derived from matches.
+    const computed = _computeStatsFromMatches(allMatches);
+    const stats = { ...computed, ...(data.stats || {}) };
 
     renderStats(stats);
     renderAuditBar(stats, scannedAt);
@@ -1593,6 +1598,19 @@
     if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
     if (diff < 86400)return `${Math.floor(diff/3600)}h ago`;
     return `${Math.floor(diff/86400)}d ago`;
+  }
+
+  function _computeStatsFromMatches(matches) {
+    const t            = matches.length;
+    const confirmed    = matches.filter(m => m.decision === 'confirmed').length;
+    const rejected     = matches.filter(m => m.decision === 'rejected').length;
+    const auto_ready   = matches.filter(m => m.best_match?.tier === 'auto'   && !m.decision).length;
+    const needs_review = matches.filter(m => m.best_match?.tier === 'review' && !m.decision).length;
+    const no_person_meta   = matches.filter(m => !m.person_shown).length;
+    const no_consent_found = matches.filter(m => !m.best_match || m.best_match.score === 0).length;
+    const compliance   = t ? +(confirmed / t * 100).toFixed(1) : 0;
+    return { total: t, confirmed, rejected, auto_ready, needs_review,
+             no_person_meta, no_consent_found, compliance };
   }
 
   // Stats
@@ -1694,17 +1712,23 @@
     } else if (persons.length === 1) {
       personHtml = `<div class="cell-primary">${persons[0]}</div>`;
     } else {
-      const matchedCount = bm && bm.score >= 60 ? persons.length : 0; // best-effort for display
-      const fracClass = matchedCount === persons.length ? 'full' : matchedCount > 0 ? 'partial' : 'none';
-      personHtml = `<div class="person-list">` +
+      // Each person needs their own consent form. best_match covers only ONE person.
+      // A confirmed decision means ops manually resolved — treat all as matched.
+      // Otherwise: best_match score ≥ 60 = 1 matched, rest unmatched.
+      const isConfirmed  = m.decision === 'confirmed';
+      const matchedCount = isConfirmed ? persons.length : (bm && bm.score >= 60 ? 1 : 0);
+      const fracClass    = matchedCount === persons.length ? 'full' : matchedCount > 0 ? 'partial' : 'none';
+      personHtml =
+        `<div class="person-list">` +
         persons.map((p, i) => {
-          const matched = bm && bm.score >= 60 && i === 0; // first person is the best match
+          const matched = isConfirmed || (bm && bm.score >= 60 && i === 0);
           return `<div class="person-row">
             <span class="material-icons-round ${matched ? 'pi-check' : 'pi-miss'}">${matched ? 'check_circle' : 'radio_button_unchecked'}</span>
             <span>${p}</span>
           </div>`;
         }).join('') +
-        `</div>`;
+        `</div>
+        <span class="consent-fraction ${fracClass}" style="margin-top:4px">${matchedCount}/${persons.length}</span>`;
     }
     const confirmActive = m.decision === 'confirmed' ? 'active' : '';
     const rejectActive  = m.decision === 'rejected'  ? 'active' : '';
