@@ -839,14 +839,18 @@ def compliance_status():
 
 @app.post("/api/compliance/reset")
 def reset_compliance():
-    """Delete all rows so the next scan starts from scratch."""
+    """Delete all cached rows in both tables so the next scan starts from scratch."""
     if not _sb_available():
         raise HTTPException(503, "Supabase not configured")
-    r = requests.delete(
+    r1 = requests.delete(
         f"{_SB_URL}/rest/v1/{_COMPLIANCE_TABLE}?folder_id=neq.''",
         headers={**_sb_headers(), "Prefer": "return=minimal"}, timeout=10,
     )
-    return {"ok": r.ok, "status": r.status_code}
+    r2 = requests.delete(
+        f"{_SB_URL}/rest/v1/{_MATCHES_TABLE}?project_id=neq.''",
+        headers={**_sb_headers(), "Prefer": "return=minimal"}, timeout=10,
+    )
+    return {"ok": r1.ok and r2.ok, "compliance": r1.status_code, "matches": r2.status_code}
 
 
 def _upsert_matches_row(row: dict) -> str | None:
