@@ -1433,12 +1433,20 @@
       const thumbCell = f.best_image_canto_url
         ? `<a href="${f.best_image_canto_url}" target="_blank" title="Open in Canto">${thumb}</a>`
         : thumb;
-      return `<tr>
+      const safeId = encodeURIComponent(f.pdf_id);
+      return `<tr id="orphan-row-${f.pdf_id}">
         <td>${thumbCell}</td>
         <td>${photoName}</td>
         <td>${pdfLabel}</td>
         <td>${scoreLabel}</td>
         <td style="color:var(--fp-secondary-50);font-size:11px">${hint}</td>
+        <td>
+          <div class="action-row">
+            <button class="btn-detail" onclick="openOrphanDetail('${f.pdf_id}')">
+              <span class="material-icons-round" style="font-size:12px">open_in_new</span>
+            </button>
+          </div>
+        </td>
       </tr>`;
     }).join('');
     container.innerHTML = `
@@ -1454,10 +1462,90 @@
             <th>Consent form</th>
             <th>Similarity</th>
             <th>Hint</th>
+            <th>Actions</th>
           </tr></thead>
           <tbody>${rows}</tbody>
         </table>
       </div>`;
+  }
+
+  function openOrphanDetail(pdfId) {
+    const f = _orphanForms.find(x => x.pdf_id === pdfId);
+    if (!f) return;
+    const score = f.best_score || 0;
+    const scoreColor = score >= 70 ? 'var(--fp-warning)' : score >= 40 ? '#e07020' : 'var(--fp-secondary-50)';
+    const hint = score >= 70 ? 'Likely misnamed — check spelling'
+               : score >= 40 ? 'Possible match — verify manually'
+               : 'No close match found';
+
+    const photoSection = f.best_image_id ? `
+      <div class="section-label" style="margin-top:20px">Closest photo candidate</div>
+      <div class="candidate" id="orphan-candidate-${pdfId}">
+        <div style="display:flex;align-items:center;gap:12px;flex:1">
+          ${f.best_image_thumb
+            ? `<img src="${f.best_image_thumb}" style="width:64px;height:64px;object-fit:cover;border-radius:4px;flex-shrink:0" />`
+            : `<div style="width:64px;height:64px;background:var(--fp-secondary-10);border-radius:4px;display:flex;align-items:center;justify-content:center"><span class="material-icons-round" style="color:var(--fp-secondary-50)">image</span></div>`}
+          <div>
+            <div class="c-name" style="font-size:var(--fs-sm)">${f.best_image_name || '—'}</div>
+            <div style="margin-top:4px;display:flex;align-items:center;gap:8px">
+              <span class="score-val" style="color:${scoreColor}">${score.toFixed(0)}%</span>
+              <span style="font-size:11px;color:var(--fp-secondary-50)">${hint}</span>
+            </div>
+            ${f.best_image_canto_url
+              ? `<a href="${f.best_image_canto_url}" target="_blank" class="btn-detail" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px;margin-top:6px;font-size:11px">
+                   <span class="material-icons-round" style="font-size:12px">open_in_new</span>Open in Canto</a>`
+              : ''}
+          </div>
+        </div>
+        <div class="c-actions">
+          <button class="btn-confirm" id="orphan-connect-btn-${pdfId}"
+            onclick="connectOrphan('${f.pdf_id}','${(f.pdf_name||'').replace(/'/g,"\\'")}','${f.best_image_id}','${(f.best_image_name||'').replace(/'/g,"\\'")}')">
+            <span class="material-icons-round" style="font-size:12px">link</span>&nbsp;Connect
+          </button>
+        </div>
+      </div>` : `
+      <div class="section-label" style="margin-top:20px">Closest photo candidate</div>
+      <p style="color:var(--fp-secondary-75);font-size:var(--fs-sm)">No candidate photo found for this consent form.</p>`;
+
+    const pdfLink = f.is_image_consent
+      ? `<span style="font-size:var(--fs-sm)">${f.pdf_name}</span>`
+      : `<a href="${f.pdf_url}" target="_blank" class="btn-detail" style="text-decoration:none;display:inline-flex;align-items:center;gap:4px">
+           <span class="material-icons-round" style="font-size:13px">picture_as_pdf</span>View PDF</a>`;
+
+    document.getElementById('modalBody').innerHTML = `
+      <div class="modal-title" id="modalTitle">${f.pdf_name}</div>
+      <div class="meta-row">
+        <div class="meta-item"><div class="m-key">Status</div><div class="m-val" style="color:var(--fp-primary);font-weight:700">Unmatched</div></div>
+        <div class="meta-item"><div class="m-key">Consent form</div><div class="m-val">${pdfLink}</div></div>
+      </div>
+      ${photoSection}`;
+
+    _modalOpener = document.activeElement;
+    const overlay = document.getElementById('modalOverlay');
+    overlay.classList.add('open');
+    requestAnimationFrame(() => { const c = overlay.querySelector('.modal-close'); if (c) c.focus(); });
+  }
+
+  async function connectOrphan(pdfId, pdfName, imageId, imageName) {
+    const btn = document.getElementById(`orphan-connect-btn-${pdfId}`);
+    if (btn) { btn.disabled = true; btn.textContent = 'Connecting…'; }
+    try {
+      const res = await fetch('/api/decision', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ image_id: imageId, image_name: imageName, pdf_id: pdfId, pdf_name: pdfName, action: 'confirmed' }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      // Remove from local orphan list and table
+      _orphanForms = _orphanForms.filter(x => x.pdf_id !== pdfId);
+      document.getElementById(`orphan-row-${pdfId}`)?.remove();
+      document.getElementById('fc-orphan-tab').textContent = _orphanForms.length;
+      document.getElementById('hcOrphan').textContent = _orphanForms.length;
+      closeModal();
+    } catch(e) {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-icons-round" style="font-size:12px">link</span>&nbsp;Connect'; }
+      alert('Connection failed: ' + e.message);
+    }
   }
 
   // Load matches — tries cache first, falls back to live scan
