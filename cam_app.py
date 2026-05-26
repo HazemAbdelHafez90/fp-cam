@@ -849,58 +849,198 @@ def reset_compliance():
     return {"ok": r.ok, "status": r.status_code}
 
 
-@app.get("/api/matches/{project_id}")
-def get_matches(
-    project_id: str,
-    album_id: str | None = None,
-    docs_album_id: str | None = None,
-    consent_album_id: str | None = None,
-):
-    """Run matching for a project and return scored pairs.
+def _upsert_matches_row(row: dict) -> str | None:
+    """Upsert one row into project_matches. Returns error string on failure."""
+    if not _sb_available():
+        return "Supabase not configured"
+    r = requests.post(
+        f"{_SB_URL}/rest/v1/{_MATCHES_TABLE}",
+        headers={**_sb_headers(), "Prefer": "resolution=merge-duplicates"},
+        json=row, timeout=10,
+    )
+    if not r.ok:
+        return f"Supabase {r.status_code}: {r.text}"
+    return None
 
-    Consent sources (tried in order, all results merged):
-      1. docs_album_id  — direct Documents sub-album fetch (PDFs)
-      2. keyword search — fallback for PDFs not in a named album
-      3. consent_album_id — scanned consent form images (name from filename)
-    """
-    # Refresh decisions from Supabase so confirmed state is always current
+
+def _build_match_response(project_id: str, results: list, decisions: dict) -> dict:
+    """Compute summary stats and return the standard matches response dict."""
+    total            = len(results)
+    confirmed        = sum(1 for r in results if r["decision"] == "confirmed")
+    rejected         = sum(1 for r in results if r["decision"] == "rejected")
+    auto_ready       = sum(1 for r in results if r.get("best_match") and
+                           r["best_match"]["tier"] == "auto" and not r["decision"])
+    needs_review     = sum(1 for r in results if r.get("best_match") and
+                           r["best_match"]["tier"] == "review" and not r["decision"])
+    no_person_meta   = sum(1 for r in results if not r["person_shown"])
+    no_consent_found = sum(1 for r in results if not r.get("best_match") or
+                           r["best_match"]["score"] == 0)
+    unresolvable     = sum(1 for r in results if r["person_shown"] and
+                           (not r.get("best_match") or r["best_match"]["score"] == 0))
+
+    persons_total   = sum(len(r["persons"]) for r in results if r["persons"])
+    persons_matched = sum(
+        sum(1 for p in r["persons"]
+            if r.get("best_match") and r["best_match"]["score"] >= 60)
+        for r in results if r["persons"]
+    )
+    partial_count   = sum(
+        1 for r in results
+        if r["persons"] and r.get("best_match") and 0 < r["best_match"]["score"] < 60
+    )
+
+    return {
+        "project_id": project_id,
+        "stats": {
+            "total":            total,
+            "confirmed":        confirmed,
+            "rejected":         rejected,
+            "auto_ready":       auto_ready,
+            "needs_review":     needs_review,
+            "no_person_meta":   no_person_meta,
+            "no_consent_found": no_consent_found,
+            "unresolvable":     unresolvable,
+            "persons_total":    persons_total,
+            "persons_matched":  persons_matched,
+            "partial_count":    partial_count,
+            "orphan_forms":     0,
+            "compliance":       round(confirmed / total * 100, 1) if total else 0,
+        },
+        "matches": results,
+    }
+
+
+@app.get("/api/matches/{project_id}/cached")
+def get_matches_cached(project_id: str):
+    """Return cached match results from Supabase. Returns 404 if not yet scanned."""
+    if not _sb_available():
+        raise HTTPException(503, "Supabase not configured")
+    r = requests.get(
+        f"{_SB_URL}/rest/v1/{_MATCHES_TABLE}"
+        f"?project_id=eq.{project_id}&select=*&limit=1",
+        headers=_sb_headers(), timeout=10,
+    )
+    if not r.ok:
+        raise HTTPException(500, f"Supabase: {r.text}")
+    rows = r.json()
+    if not rows:
+        raise HTTPException(404, "No cached results — run a scan first")
+    row = rows[0]
+    if row.get("status") == "error":
+        raise HTTPException(500, row.get("error_msg", "Scan failed"))
+
+    stored = row.get("results_json") or {}
+    if isinstance(stored, list):
+        matches      = stored
+        orphan_forms = []
+    else:
+        matches      = stored.get("matches", [])
+        orphan_forms = stored.get("orphan_forms", [])
+
+    return {
+        "project_id":    project_id,
+        "scanned_at":    row.get("scanned_at"),
+        "stats": {
+            "persons_total":   row.get("persons_total", 0),
+            "persons_matched": row.get("persons_matched", 0),
+            "partial_count":   row.get("partial_count", 0),
+            "orphan_forms":    row.get("orphan_forms", 0),
+        },
+        "matches":       matches,
+        "orphan_forms":  orphan_forms,
+    }
+
+
+@app.post("/api/matches/{project_id}/scan")
+def scan_matches(project_id: str, body: dict):
+    """Run matching, persist to Supabase cache, return response. Idempotent."""
+    album_id         = body.get("album_id", "")
+    docs_album_id    = body.get("docs_album_id", "")
+    consent_album_id = body.get("consent_album_id", "")
+    folder_id        = body.get("folder_id", project_id)
+    project_name     = body.get("project_name", "")
+
+    try:
+        response = _run_matching(project_id, album_id, docs_album_id, consent_album_id)
+        results_for_storage = response["matches"]
+        stats = response["stats"]
+
+        matched_pdf_ids = {
+            r["best_match"]["pdf_id"]
+            for r in results_for_storage
+            if r.get("best_match") and r["best_match"].get("pdf_id")
+        }
+        pdf_candidate_map: dict[str, dict] = {}
+        for r in results_for_storage:
+            for c in r.get("candidates", []):
+                pid_c = c.get("pdf_id")
+                if not pid_c:
+                    continue
+                existing = pdf_candidate_map.get(pid_c)
+                if existing is None or c["score"] > existing["best_score"]:
+                    pdf_candidate_map[pid_c] = {
+                        "pdf_id":           pid_c,
+                        "pdf_name":         c.get("pdf_name", ""),
+                        "pdf_url":          c.get("pdf_url", ""),
+                        "is_image_consent": c.get("is_image_consent", False),
+                        "best_score":       c["score"],
+                        "best_image_id":    r["image_id"],
+                        "best_image_name":  r["image_name"],
+                        "best_image_thumb": r.get("image_thumb", ""),
+                    }
+
+        orphan_list = sorted(
+            [v for k, v in pdf_candidate_map.items() if k not in matched_pdf_ids],
+            key=lambda x: x["best_score"], reverse=True,
+        )
+
+        scanned_at = datetime.now(timezone.utc).isoformat()
+        _upsert_matches_row({
+            "project_id":      project_id,
+            "folder_id":       folder_id,
+            "project_name":    project_name,
+            "results_json":    {"matches": results_for_storage, "orphan_forms": orphan_list},
+            "persons_total":   stats.get("persons_total", 0),
+            "persons_matched": stats.get("persons_matched", 0),
+            "partial_count":   stats.get("partial_count", 0),
+            "orphan_forms":    len(orphan_list),
+            "status":          "done",
+            "scanned_at":      scanned_at,
+            "error_msg":       None,
+        })
+
+        return {**response, "orphan_forms": orphan_list, "scanned_at": scanned_at}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        _upsert_matches_row({
+            "project_id":   project_id,
+            "folder_id":    folder_id,
+            "project_name": project_name,
+            "status":       "error",
+            "error_msg":    str(e),
+        })
+        raise HTTPException(500, str(e))
+
+
+def _run_matching(project_id: str, album_id: str = "",
+                  docs_album_id: str = "", consent_album_id: str = "") -> dict:
+    """Core matching logic — shared by scan endpoint and legacy get_matches."""
     global decisions
     decisions = _load_decisions()
 
-    # Prefer direct album fetch (accurate) over keyword search (unreliable)
     if album_id:
         images = canto.get_album_images(album_id)
     else:
         images = canto.get_project_images(project_id)
 
-    # ── PDF documents ─────────────────────────────────────────────────────────
-    if docs_album_id:
-        docs = canto.get_album_documents(docs_album_id)
-        if not docs:
-            docs = canto.get_project_documents(project_id)
-    else:
-        docs = canto.get_project_documents(project_id)
-
-    # ── Scanned consent form images ───────────────────────────────────────────
-    consent_images: list[dict] = []
-    if consent_album_id:
-        raw_consent_imgs = canto.get_album_images(consent_album_id)
-        consent_images   = [d for d in
-                            (_consent_image_to_pdf_data(img, project_id) for img in raw_consent_imgs)
-                            if d is not None]
+    pdf_data_list = _fetch_pdf_data_for_project(project_id, docs_album_id, consent_album_id)
 
     if not images:
         raise HTTPException(404, f"No images found for project {project_id}")
-    if not docs and not consent_images:
+    if not pdf_data_list:
         raise HTTPException(404, f"No consent documents or scanned forms found for project {project_id}")
-
-    # Parse PDFs → pdf_data dicts
-    pdf_data_list = [d for d in (_load_pdf_data(doc) for doc in docs
-                                  if doc.get("name", "").lower().endswith(".pdf"))
-                     if d is not None]
-
-    # Merge scanned consent image pseudo-dicts
-    pdf_data_list.extend(consent_images)
 
     results = []
     for image in images:
@@ -924,21 +1064,20 @@ def get_matches(
                 best_result, best_pdf = result, pdf_data
 
         all_candidates.sort(key=lambda c: c["score"], reverse=True)
-
         decision = decisions.get(image["id"], {})
         img_additional = image.get("additional", {})
 
         results.append({
-            "image_id":      image["id"],
-            "image_name":    image.get("name", ""),
-            "image_thumb":   image.get("url", {}).get("directUrlPreview", "") or image.get("url", {}).get("previewURI240", ""),
+            "image_id":        image["id"],
+            "image_name":      image.get("name", ""),
+            "image_thumb":     image.get("url", {}).get("directUrlPreview", "") or image.get("url", {}).get("previewURI240", ""),
             "image_canto_url": image.get("url", {}).get("detail", ""),
-            "person_shown":  img_additional.get("Person Shown in the Image") or "",
-            "persons":       matcher.persons_from_image(image),
-            "country":       img_additional.get("Country") or "",
-            "city":          img_additional.get("City") or "",
-            "consent_linked": img_additional.get("Consent") or "",
-            "project_id":    project_id,
+            "person_shown":    img_additional.get("Person Shown in the Image") or "",
+            "persons":         matcher.persons_from_image(image),
+            "country":         img_additional.get("Country") or "",
+            "city":            img_additional.get("City") or "",
+            "consent_linked":  img_additional.get("Consent") or "",
+            "project_id":      project_id,
             "best_match": {
                 "pdf_id":           best_pdf["_id"]   if best_pdf else None,
                 "pdf_name":         best_pdf["_name"] if best_pdf else None,
@@ -949,41 +1088,26 @@ def get_matches(
                 "signals":          {s.signal: {"score": round(s.score, 1), "detail": s.detail}
                                      for s in best_result.signals} if best_result else {},
             } if best_pdf else None,
-            "candidates":    all_candidates[:5],  # top 5
-            "decision":      decision.get("action", ""),
-            "decided_pdf_id": decision.get("pdf_id", ""),
+            "candidates":      all_candidates[:5],
+            "decision":        decision.get("action", ""),
+            "decided_pdf_id":  decision.get("pdf_id", ""),
         })
 
-    # Summary stats — detailed breakdown
-    total            = len(results)
-    confirmed        = sum(1 for r in results if r["decision"] == "confirmed")
-    rejected         = sum(1 for r in results if r["decision"] == "rejected")
-    auto_ready       = sum(1 for r in results if r.get("best_match") and
-                           r["best_match"]["tier"] == "auto" and not r["decision"])
-    needs_review     = sum(1 for r in results if r.get("best_match") and
-                           r["best_match"]["tier"] == "review" and not r["decision"])
-    no_person_meta   = sum(1 for r in results if not r["person_shown"])
-    no_consent_found = sum(1 for r in results if not r.get("best_match") or
-                           r["best_match"]["score"] == 0)
-    # Images where person is known but no matching consent PDF was found
-    unresolvable     = sum(1 for r in results if r["person_shown"] and
-                           (not r.get("best_match") or r["best_match"]["score"] == 0))
+    return _build_match_response(project_id, results, decisions)
 
-    return {
-        "project_id": project_id,
-        "stats": {
-            "total":            total,
-            "confirmed":        confirmed,
-            "rejected":         rejected,
-            "auto_ready":       auto_ready,
-            "needs_review":     needs_review,
-            "no_person_meta":   no_person_meta,
-            "no_consent_found": no_consent_found,
-            "unresolvable":     unresolvable,
-            "compliance":       round(confirmed / total * 100, 1) if total else 0,
-        },
-        "matches": results,
-    }
+
+@app.get("/api/matches/{project_id}")
+def get_matches(
+    project_id: str,
+    album_id: str | None = None,
+    docs_album_id: str | None = None,
+    consent_album_id: str | None = None,
+):
+    """Run matching live (no cache). Kept for backwards compatibility.
+
+    Prefer POST /api/matches/{project_id}/scan for cached runs.
+    """
+    return _run_matching(project_id, album_id or "", docs_album_id or "", consent_album_id or "")
 
 
 class DecisionRequest(BaseModel):
