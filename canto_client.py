@@ -214,12 +214,7 @@ def get_document_related_image_ids(doc_id: str) -> set[str]:
             return set()
         data = resp.json()
         # Canto stores related items under different keys depending on version
-        related = (
-            data.get("relatedContents") or
-            data.get("related") or
-            data.get("relatedFiles") or
-            []
-        )
+        related = data.get("relatedFile") or []
         return {item["id"] for item in related if item.get("scheme") == "image"}
     except Exception:
         return set()
