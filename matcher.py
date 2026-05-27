@@ -64,13 +64,12 @@ def _persons_from_image(image: dict) -> list[str]:
     """
     Parse 'Person Shown in the Image' into a clean list of names.
 
-    The field uses newlines between people, with optional age/role after
-    a comma on the same line. e.g.:
-        Mulatu Lodebo,40
-        wife Almaz Tamiru,30
-        son Chernet Mulatu,24
-
-    We split by newline first, then strip age numbers and role prefixes.
+    Supported formats (single field value):
+      • Newline-separated:       "Alice\nBob"
+      • Semicolon-separated:     "Alice;Bob"
+      • Comma-separated names:   "Grace Mambwe Chanda (31), Chileshe Mutale(25)"
+      • Name + age via comma:    "Mulatu Lodebo,40"   → one person, age stripped
+      • Role prefix:             "wife Almaz Tamiru,30"
     """
     raw = image.get("additional", {}).get("Person Shown in the Image") or ""
     if not raw:
@@ -81,17 +80,22 @@ def _persons_from_image(image: dict) -> list[str]:
         line = line.strip()
         if not line:
             continue
-        # Remove role prefix words: "wife", "son", "daughter", "husband" etc.
-        line = re.sub(r"^\b(wife|husband|son|daughter|father|mother|brother|sister|child)\b\s*",
-                      "", line, flags=re.IGNORECASE).strip()
-        # Strip trailing age: ",40" or ", 40 years" etc.
-        line = re.sub(r",\s*\d+.*$", "", line).strip()
-        # Strip parenthetical role descriptions e.g. "Christian (Priest)"
+        # Remove role prefix words
+        line = re.sub(
+            r"^\b(wife|husband|son|daughter|father|mother|brother|sister|child)\b\s*",
+            "", line, flags=re.IGNORECASE,
+        ).strip()
+        # Strip parenthetical ages/roles: "(31)", "(Priest)", etc.
         line = re.sub(r"\(.*?\)", "", line).strip()
-        if line:
-            names.append(line)
+        # Strip trailing ",<number>" age pattern: "Name,40" → "Name"
+        line = re.sub(r",\s*\d+.*$", "", line).strip()
 
-    # Fallback: if no newlines, try splitting on " and " or "+"
+        # Split remaining commas as person separators.
+        # After the above cleanup any comma left separates two distinct names.
+        parts = [p.strip() for p in line.split(",") if p.strip()]
+        names.extend(parts)
+
+    # Fallback: if nothing parsed yet, try " and " or "+"
     if not names:
         for part in re.split(r"\band\b|\+", raw, flags=re.IGNORECASE):
             part = re.sub(r",\s*\d+.*$", "", part).strip()
