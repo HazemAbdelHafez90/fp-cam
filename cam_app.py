@@ -1026,15 +1026,35 @@ def scan_matches(project_id: str, body: dict):
         # Candidates not matched by algorithm or decision
         candidate_orphans = [v for k, v in pdf_candidate_map.items() if k not in matched_pdf_ids]
 
-        # Final filter: exclude any PDF that already has a related image in Canto
-        # (i.e. it was linked directly in Canto, not through CAM)
-        def _has_canto_related_image(pdf_entry: dict) -> bool:
-            if pdf_entry.get("is_image_consent"):
-                return False  # scanned image forms are never documents in Canto
-            return bool(canto.get_document_related_image_ids(pdf_entry["pdf_id"]))
+        # Fetch relatedFile once per candidate PDF (single source of truth).
+        # Album image listings don't include relatedFile, so we read from the PDF side.
+        all_candidate_pdf_ids = {
+            c.get("pdf_id")
+            for r in results_for_storage
+            for c in r.get("candidates", [])
+            if c.get("pdf_id") and not c.get("is_image_consent")
+        }
+        pdf_related_images: dict[str, set[str]] = {
+            pdf_id: canto.get_document_related_image_ids(pdf_id)
+            for pdf_id in all_candidate_pdf_ids
+        }
 
+        # Build image_id → linked_doc_count by inverting the map
+        image_linked_count: dict[str, int] = {}
+        for img_ids in pdf_related_images.values():
+            for img_id in img_ids:
+                image_linked_count[img_id] = image_linked_count.get(img_id, 0) + 1
+
+        # Patch linked_consent_count into every result
+        for r in results_for_storage:
+            r["linked_consent_count"] = image_linked_count.get(r["image_id"], 0)
+
+        # A PDF is truly orphaned if:
+        #   - not algorithmically matched (not in matched_pdf_ids), AND
+        #   - has no related image in Canto (pdf_related_images empty or absent)
         orphan_list = sorted(
-            [v for v in candidate_orphans if not _has_canto_related_image(v)],
+            [v for v in candidate_orphans
+             if not pdf_related_images.get(v["pdf_id"])],
             key=lambda x: x["best_score"], reverse=True,
         )
 
@@ -1121,9 +1141,7 @@ def _run_matching(project_id: str, album_id: str = "",
             "country":         img_additional.get("Country") or "",
             "city":            img_additional.get("City") or "",
             "consent_linked":       img_additional.get("Consent") or "",
-            "linked_consent_count": sum(
-                1 for f in image.get("relatedFile", []) if f.get("scheme") == "document"
-            ),
+            "linked_consent_count": 0,  # populated by _run_scan_and_cache via PDF-side relatedFile
             "project_id":      project_id,
             "best_match": {
                 "pdf_id":           best_pdf["_id"]   if best_pdf else None,
