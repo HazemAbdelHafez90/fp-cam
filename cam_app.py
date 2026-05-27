@@ -1120,7 +1120,10 @@ def _run_matching(project_id: str, album_id: str = "",
             "persons":         matcher.persons_from_image(image),
             "country":         img_additional.get("Country") or "",
             "city":            img_additional.get("City") or "",
-            "consent_linked":  img_additional.get("Consent") or "",
+            "consent_linked":       img_additional.get("Consent") or "",
+            "linked_consent_count": sum(
+                1 for f in image.get("relatedFile", []) if f.get("scheme") == "document"
+            ),
             "project_id":      project_id,
             "best_match": {
                 "pdf_id":           best_pdf["_id"]   if best_pdf else None,
