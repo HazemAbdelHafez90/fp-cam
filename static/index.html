@@ -1864,8 +1864,12 @@
     }
     const confirmActive = m.decision === 'confirmed' ? 'active' : '';
     const rejectActive  = m.decision === 'rejected'  ? 'active' : '';
+    const _pLen = (m.persons || []).length;
+    const _linked = m.linked_consent_count || 0;
+    const rowClass = (_linked >= _pLen && _pLen > 0) ? 'confirmed'
+                   : m.decision === 'rejected' ? 'rejected' : '';
     return `
-      <tr class="${(() => { const pLen = (m.persons||[]).length; const linked = m.linked_consent_count || 0; const fullyDone = linked >= pLen && pLen > 0; return fullyDone ? 'confirmed' : m.decision === 'rejected' ? 'rejected' : ''; })()" id="row-${m.image_id}">
+      <tr class="${rowClass}" id="row-${m.image_id}">
         <td>${thumb}</td>
         <td><div class="cell-primary" title="${m.image_name}">${truncate(m.image_name, 28)}</div></td>
         <td>
